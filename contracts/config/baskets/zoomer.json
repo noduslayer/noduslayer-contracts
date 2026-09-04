@@ -1,0 +1,21 @@
+{
+  "name": "NodusLayer Zoomer Tech",
+  "symbol": "ZOOMER",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "PLTR",
+    "MSTR",
+    "CRCL",
+    "RKLB",
+    "IONQ"
+  ],
+  "weightsBps": [
+    3500,
+    2500,
+    2000,
+    1600,
+    400
+  ]
+}

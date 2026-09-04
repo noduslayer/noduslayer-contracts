@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Stonks Only Go Up",
+  "symbol": "STONKS",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "GME",
+    "TSLA",
+    "MSTR",
+    "COIN"
+  ],
+  "weightsBps": [
+    3000,
+    2500,
+    2500,
+    2000
+  ]
+}

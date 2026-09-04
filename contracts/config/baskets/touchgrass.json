@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Touch Grass",
+  "symbol": "GRASS",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "SGOV",
+    "SLV"
+  ],
+  "weightsBps": [
+    5000,
+    3000,
+    2000
+  ]
+}

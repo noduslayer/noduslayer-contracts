@@ -65,7 +65,7 @@ BASKET=tech forge script script/CreateBasket.s.sol --rpc-url robinhood --account
 ```
 
 Basket recipes live in `contracts/config/baskets/*.json` and declare **target weights**; `units` are derived
-from live Chainlink prices at creation. The 47 curated baskets are catalogued in
+from live Chainlink prices at creation. The 60 curated baskets are catalogued in
 [`docs/baskets.md`](docs/baskets.md).
 
 ## Status

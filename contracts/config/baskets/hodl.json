@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer HODL",
+  "symbol": "HODL",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSTR",
+    "COIN",
+    "CRCL",
+    "CLSK"
+  ],
+  "weightsBps": [
+    4100,
+    3500,
+    2000,
+    400
+  ]
+}

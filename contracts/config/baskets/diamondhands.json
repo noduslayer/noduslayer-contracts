@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Diamond Hands",
+  "symbol": "DIAMOND",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "GME",
+    "MSTR",
+    "TSLA",
+    "PLTR"
+  ],
+  "weightsBps": [
+    3500,
+    3000,
+    2000,
+    1500
+  ]
+}

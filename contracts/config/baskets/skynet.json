@@ -1,0 +1,25 @@
+{
+  "name": "NodusLayer Skynet",
+  "symbol": "SKYNET",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "PLTR",
+    "CRWV",
+    "RGTI",
+    "IONQ",
+    "NBIS",
+    "CLSK"
+  ],
+  "weightsBps": [
+    5500,
+    2000,
+    800,
+    500,
+    400,
+    400,
+    400
+  ]
+}

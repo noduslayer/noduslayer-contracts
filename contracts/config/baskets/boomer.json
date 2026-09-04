@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Boomer Tech",
+  "symbol": "BOOMER",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "INTC",
+    "DELL",
+    "BABA",
+    "ORCL"
+  ],
+  "weightsBps": [
+    3500,
+    3200,
+    2500,
+    800
+  ]
+}

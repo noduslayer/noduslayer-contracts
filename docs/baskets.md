@@ -1,18 +1,17 @@
 # NodusLayer — Katalog Basket
 
-**47 basket kurasi.** Semua dibuat dan dikelola protokol: `BasketFactory.createBasket` bersifat
+**60 basket kurasi.** Semua dibuat dan dikelola protokol: `BasketFactory.createBasket` bersifat
 `onlyOwner`, jadi pengguna tidak bisa membuat basket sendiri.
 
 Seluruh katalog diuji terhadap Robinhood Chain mainnet (chain 4663) oleh
-`test/fork/BasketCatalogue.t.sol`, yang benar-benar men-deploy setiap basket dengan harga Chainlink live dan
-memastikan: semua konstituen punya feed on-chain, bobot berjumlah 100%, tidak ada yang melanggar cap
-kedalaman, dan `BasketLens.nav` mengembalikan nilai dalam 1% dari target. Resep yang rusak menggagalkan tes.
+`test/fork/BasketCatalogue.t.sol`, yang men-deploy setiap basket dengan harga Chainlink live dan memastikan
+semua konstituen punya feed, bobot berjumlah 100%, tidak ada yang melanggar cap kedalaman, dan
+`BasketLens.nav` mengembalikan nilai dalam 1% dari target. Resep rusak menggagalkan tes.
 
-Spesifikasi menyatakan **bobot**, bukan `units`; `units` diturunkan dari Chainlink saat pembuatan sehingga
-spec basi tidak bisa menghasilkan resep salah harga.
+Spesifikasi menyatakan **bobot**, bukan `units`; `units` diturunkan dari Chainlink saat pembuatan.
 
 - **Kapasitas** — pembelian sekali transaksi terbesar sebelum satu konstituen menyerap lebih dari
-  1% kedalamannya: `min(kedalaman_i × 1% ÷ bobot_i)`. Ditentukan konstituen **terdangkal**.
+  1% kedalamannya. Ditentukan konstituen **terdangkal**.
 - **Gas** — perkiraan zapMint kondisi mapan, ~$0.34 + $0.22 per konstituen.
 
 ## Inti & pasar luas
@@ -107,9 +106,27 @@ spec basi tidak bisa menghasilkan resep salah harga.
 | EV & Autonomy | `EV` | TSLA 60% · NVDA 40% | $27,677 | $0.78 |
 | Legacy Tech | `LEGACY` | INTC 35% · DELL 30% · BABA 27% · ORCL 8% | $5,381 | $1.22 |
 
+## Meme & budaya ritel
+
+| Basket | Simbol | Komposisi | Kapasitas/tx | Gas |
+|---|---|---|--:|--:|
+| Gigachad | `GIGA` | NVDA 30% · GOOGL 25% · AAPL 25% · INTC 15% · GME 5% | $25,574 | $1.44 |
+| Diamond Hands | `DIAMOND` | GME 35% · MSTR 30% · TSLA 20% · PLTR 15% | $34,125 | $1.22 |
+| Paper Hands | `PAPER` | SGOV 70% · SPY 20% · SLV 10% | $12,471 | $1.00 |
+| To The Moon | `MOON` | SPCX 60% · NVDA 24% · RKLB 16% | $5,266 | $1.00 |
+| Stonks Only Go Up | `STONKS` | GME 30% · TSLA 25% · MSTR 25% · COIN 20% | $18,954 | $1.22 |
+| HODL | `HODL` | MSTR 41% · COIN 35% · CRCL 20% · CLSK 4% | $5,887 | $1.22 |
+| Boomer Tech | `BOOMER` | INTC 35% · DELL 32% · BABA 25% · ORCL 8% | $5,381 | $1.22 |
+| Zoomer Tech | `ZOOMER` | PLTR 35% · MSTR 25% · CRCL 20% · RKLB 16% · IONQ 4% | $5,266 | $1.44 |
+| Skynet | `SKYNET` | NVDA 55% · PLTR 20% · CRWV 8% · RGTI 5% · IONQ 4% · NBIS 4% · CLSK 4% | $5,200 | $1.88 |
+| Tendies | `TENDIES` | GME 30% · AMZN 30% · TSLA 25% · COIN 15% | $25,272 | $1.22 |
+| Buy The Dip | `BTD` | INTC 40% · BABA 35% · DELL 25% | $9,590 | $1.00 |
+| YOLO | `YOLO` | MSTR 55% · GME 45% | $18,614 | $0.78 |
+| Touch Grass | `GRASS` | SPY 50% · SGOV 30% · SLV 20% | $19,062 | $1.00 |
+
 ## Batasan yang membentuk katalog
 
-Cap kedalaman bukan formalitas — ia mengubah komposisi. Cap yang mengikat saat ini:
+Cap kedalaman mengubah komposisi, bukan sekadar formalitas:
 
 | Token | Kedalaman | Bobot maks |
 |---|--:|--:|
@@ -129,19 +146,15 @@ Cap kedalaman bukan formalitas — ia mengubah komposisi. Cap yang mengikat saat
 | `BABA` | $403,901 | 80.78% |
 | `SNDK` | $499,319 | 99.86% |
 
-Konsekuensi nyata:
-
-- **Basket kuantum murni mustahil.** IONQ (4.60%), RGTI (5.30%) dan
-  CLSK (4.70%) digabung pun tak mencapai 15% bobot. `QNTM` dan `FRNT` memakai NVDA sebagai
-  jangkar agar kapasitasnya layak.
-- **ASML** (38.45%) membatasi `SEMI` ke 10% dan `CHIPEQ` ke 35%.
-- **EWY** (6.01%) adalah konstituen terdangkal di katalog dan menentukan kapasitas
+- **Basket kuantum murni mustahil.** IONQ (4.60%) + RGTI (5.30%) +
+  CLSK (4.70%) tak mencapai 15% bobot gabungan. `QNTM`, `FRNT` dan `SKYNET` memakai NVDA
+  sebagai jangkar.
+- **EWY** (6.01%) adalah konstituen terdangkal di katalog dan menentukan kapasitas terkecil:
   `ASIA` ($5,013).
 - **ORCL** dibatasi 8.60% meski volume RFQ-nya ~$25 juta/hari, karena kedalaman AMM-nya
   hanya $43,048.
 
-Kapasitas terkecil di katalog adalah $5,013 — lima kali lipat tiket ritel terbesar yang
-diperkirakan (~$1.000).
+Kapasitas terkecil $5,013 — lima kali tiket ritel terbesar yang diperkirakan (~$1.000).
 
 ## Membuat basket
 
@@ -151,10 +164,9 @@ export FACTORY=0x...
 BASKET=tech forge script script/CreateBasket.s.sol --rpc-url robinhood --account owner --broadcast
 ```
 
-Menambah basket = menambah satu file di `config/baskets/`. Script dan fork test menolak resep yang bobotnya
-tidak berjumlah 100%, melanggar cap kedalaman, jatuh di bawah lantai 1%,
-atau memuat konstituen tanpa feed Chainlink.
+Menambah basket = menambah satu file di `config/baskets/`. Script dan fork test menolak resep yang tidak
+berjumlah 100%, melanggar cap, jatuh di bawah lantai 1%,
+atau memuat konstituen tanpa feed.
 
-Snapshot kedalaman 2026-09-04T09:07:24+00:00; hanya
-menghitung pool USDG v2/v3 dan saldo v4 PoolManager, sehingga merupakan **batas bawah**. Likuiditas
-bergerak — hitung ulang cap sebelum menambah basket.
+Snapshot kedalaman 2026-09-04T09:29:40+00:00; hanya
+menghitung pool USDG v2/v3 dan saldo v4 PoolManager, jadi merupakan batas bawah.

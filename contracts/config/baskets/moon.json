@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer To The Moon",
+  "symbol": "MOON",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPCX",
+    "NVDA",
+    "RKLB"
+  ],
+  "weightsBps": [
+    6000,
+    2400,
+    1600
+  ]
+}

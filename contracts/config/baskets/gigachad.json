@@ -1,0 +1,21 @@
+{
+  "name": "NodusLayer Gigachad",
+  "symbol": "GIGA",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "GOOGL",
+    "AAPL",
+    "INTC",
+    "GME"
+  ],
+  "weightsBps": [
+    3000,
+    2500,
+    2500,
+    1500,
+    500
+  ]
+}

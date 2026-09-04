@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer YOLO",
+  "symbol": "YOLO",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSTR",
+    "GME"
+  ],
+  "weightsBps": [
+    5500,
+    4500
+  ]
+}
