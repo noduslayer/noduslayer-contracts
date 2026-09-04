@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Cloud",
+  "symbol": "CLOUD",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSFT",
+    "GOOGL",
+    "PLTR",
+    "ORCL"
+  ],
+  "weightsBps": [
+    4000,
+    3000,
+    2200,
+    800
+  ]
+}

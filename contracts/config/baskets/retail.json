@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Retail",
+  "symbol": "RETAIL",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "GME",
+    "AMZN",
+    "TSLA"
+  ],
+  "weightsBps": [
+    4000,
+    3500,
+    2500
+  ]
+}

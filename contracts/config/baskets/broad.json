@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer Broad Market",
+  "symbol": "BROAD",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "QQQ"
+  ],
+  "weightsBps": [
+    6000,
+    4000
+  ]
+}

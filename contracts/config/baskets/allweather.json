@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer All Weather",
+  "symbol": "ALLW",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "SGOV",
+    "SLV",
+    "USO"
+  ],
+  "weightsBps": [
+    3500,
+    3000,
+    2000,
+    1500
+  ]
+}

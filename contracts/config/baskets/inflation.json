@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Inflation Hedge",
+  "symbol": "INFL",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SLV",
+    "USO",
+    "USAR"
+  ],
+  "weightsBps": [
+    4000,
+    3000,
+    3000
+  ]
+}

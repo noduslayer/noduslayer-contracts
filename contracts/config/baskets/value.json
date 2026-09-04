@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Value",
+  "symbol": "VALUE",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "INTC",
+    "BABA",
+    "DELL",
+    "ORCL"
+  ],
+  "weightsBps": [
+    3200,
+    3200,
+    2800,
+    800
+  ]
+}

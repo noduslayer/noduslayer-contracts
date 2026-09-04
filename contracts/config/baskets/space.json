@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer Space",
+  "symbol": "SPACE",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPCX",
+    "RKLB"
+  ],
+  "weightsBps": [
+    8500,
+    1500
+  ]
+}

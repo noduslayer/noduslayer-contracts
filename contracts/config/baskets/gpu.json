@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer GPU Duopoly",
+  "symbol": "GPU",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "AMD"
+  ],
+  "weightsBps": [
+    6000,
+    4000
+  ]
+}

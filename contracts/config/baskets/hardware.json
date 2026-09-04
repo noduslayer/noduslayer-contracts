@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Hardware",
+  "symbol": "HDWR",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "AAPL",
+    "DELL",
+    "SNDK"
+  ],
+  "weightsBps": [
+    4000,
+    3000,
+    3000
+  ]
+}

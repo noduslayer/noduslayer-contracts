@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer 60/40",
+  "symbol": "SIXTY40",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "SGOV"
+  ],
+  "weightsBps": [
+    6000,
+    4000
+  ]
+}

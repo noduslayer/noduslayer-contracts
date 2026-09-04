@@ -1,0 +1,21 @@
+{
+  "name": "NodusLayer Core 5",
+  "symbol": "CORE5",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN"
+  ],
+  "weightsBps": [
+    2500,
+    2000,
+    2000,
+    2000,
+    1500
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Bitcoin Proxy",
+  "symbol": "BTCPX",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSTR",
+    "COIN",
+    "CLSK"
+  ],
+  "weightsBps": [
+    5500,
+    4100,
+    400
+  ]
+}

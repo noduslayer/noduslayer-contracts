@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Crypto Equities",
+  "symbol": "CRYPTOEQ",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSTR",
+    "COIN",
+    "CRCL"
+  ],
+  "weightsBps": [
+    4000,
+    3500,
+    2500
+  ]
+}

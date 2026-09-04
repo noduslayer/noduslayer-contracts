@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Chip Equipment",
+  "symbol": "CHIPEQ",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "ASML",
+    "TSM",
+    "INTC"
+  ],
+  "weightsBps": [
+    3500,
+    3500,
+    3000
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Enterprise IT",
+  "symbol": "ENTIT",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSFT",
+    "DELL",
+    "INTC",
+    "ORCL"
+  ],
+  "weightsBps": [
+    3500,
+    3200,
+    2500,
+    800
+  ]
+}

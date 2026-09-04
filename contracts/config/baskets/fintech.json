@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer Fintech",
+  "symbol": "FINTECH",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "CRCL",
+    "COIN"
+  ],
+  "weightsBps": [
+    5000,
+    5000
+  ]
+}

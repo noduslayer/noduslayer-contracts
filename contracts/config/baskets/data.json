@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Data & Analytics",
+  "symbol": "DATA",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "PLTR",
+    "MSFT",
+    "NVDA"
+  ],
+  "weightsBps": [
+    4500,
+    3000,
+    2500
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "NodusLayer AI",
+  "symbol": "AI",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "AMD",
+    "TSM",
+    "MU",
+    "PLTR"
+  ],
+  "weightsBps": [
+    3000,
+    2000,
+    2000,
+    1500,
+    1500
+  ]
+}

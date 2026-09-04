@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer Metals",
+  "symbol": "METAL",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SLV",
+    "USAR"
+  ],
+  "weightsBps": [
+    6000,
+    4000
+  ]
+}

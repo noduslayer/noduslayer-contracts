@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer EV & Autonomy",
+  "symbol": "EV",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "TSLA",
+    "NVDA"
+  ],
+  "weightsBps": [
+    6000,
+    4000
+  ]
+}

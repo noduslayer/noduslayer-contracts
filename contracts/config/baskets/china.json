@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer China Exposure",
+  "symbol": "CHINA",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "BABA",
+    "TSM",
+    "EWY"
+  ],
+  "weightsBps": [
+    7400,
+    2000,
+    600
+  ]
+}

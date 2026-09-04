@@ -1,0 +1,15 @@
+{
+  "name": "NodusLayer S&P Tilt",
+  "symbol": "SPTILT",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "QQQ"
+  ],
+  "weightsBps": [
+    8000,
+    2000
+  ]
+}

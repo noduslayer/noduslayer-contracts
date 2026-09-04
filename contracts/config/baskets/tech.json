@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Tech",
+  "symbol": "TECH",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "AAPL",
+    "GOOGL",
+    "MSFT"
+  ],
+  "weightsBps": [
+    3000,
+    2500,
+    2500,
+    2000
+  ]
+}

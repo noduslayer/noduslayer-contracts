@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Asia Tech",
+  "symbol": "ASIA",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "TSM",
+    "BABA",
+    "EWY"
+  ],
+  "weightsBps": [
+    5000,
+    4400,
+    600
+  ]
+}

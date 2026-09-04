@@ -1,0 +1,23 @@
+{
+  "name": "NodusLayer AI Infrastructure",
+  "symbol": "AIINF",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "MU",
+    "DELL",
+    "SNDK",
+    "CRWV",
+    "NBIS"
+  ],
+  "weightsBps": [
+    3000,
+    2500,
+    2000,
+    1500,
+    800,
+    200
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "NodusLayer Semiconductors",
+  "symbol": "SEMI",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "TSM",
+    "AMD",
+    "MU",
+    "ASML",
+    "INTC"
+  ],
+  "weightsBps": [
+    3000,
+    2000,
+    2000,
+    1500,
+    1000,
+    500
+  ]
+}

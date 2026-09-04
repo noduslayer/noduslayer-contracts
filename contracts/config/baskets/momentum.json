@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Momentum",
+  "symbol": "MOM",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "MSTR",
+    "PLTR",
+    "CRCL",
+    "RKLB"
+  ],
+  "weightsBps": [
+    3500,
+    3000,
+    1900,
+    1600
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Defensive",
+  "symbol": "DEF",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SGOV",
+    "SLV",
+    "USO"
+  ],
+  "weightsBps": [
+    5000,
+    3000,
+    2000
+  ]
+}

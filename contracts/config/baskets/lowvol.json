@@ -1,0 +1,17 @@
+{
+  "name": "NodusLayer Low Volatility",
+  "symbol": "LOWVOL",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SGOV",
+    "SPY",
+    "SLV"
+  ],
+  "weightsBps": [
+    6000,
+    2500,
+    1500
+  ]
+}

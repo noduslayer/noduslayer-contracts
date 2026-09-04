@@ -1,0 +1,25 @@
+{
+  "name": "NodusLayer Frontier Tech",
+  "symbol": "FRNT",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "NVDA",
+    "RKLB",
+    "CRWV",
+    "RGTI",
+    "CLSK",
+    "IONQ",
+    "NBIS"
+  ],
+  "weightsBps": [
+    6000,
+    1500,
+    800,
+    500,
+    400,
+    400,
+    400
+  ]
+}
