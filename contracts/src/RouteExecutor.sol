@@ -101,6 +101,9 @@ abstract contract RouteExecutor is IRouteExecutor, Ownable2Step {
         return n + 1;
     }
 
+    /// @dev Unreachable by construction: callers build `tokens` from every recipe and every leg's sell
+    ///      token before any lookup happens. The revert exists so a future caller that forgets one fails
+    ///      loudly instead of measuring a delta against a balance nobody snapshotted.
     function _indexOf(address[] memory tokens, address token) internal pure returns (uint256) {
         for (uint256 i; i < tokens.length; ++i) {
             if (tokens[i] == token) return i;

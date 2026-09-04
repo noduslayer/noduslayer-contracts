@@ -265,7 +265,7 @@
       {
         "name": "swaps",
         "type": "tuple[]",
-        "internalType": "struct IBasketZap.Swap[]",
+        "internalType": "struct IRouteExecutor.Swap[]",
         "components": [
           {
             "name": "router",
@@ -336,7 +336,7 @@
       {
         "name": "swaps",
         "type": "tuple[]",
-        "internalType": "struct IBasketZap.Swap[]",
+        "internalType": "struct IRouteExecutor.Swap[]",
         "components": [
           {
             "name": "router",

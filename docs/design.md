@@ -171,9 +171,19 @@ the 1% floor, fail to sum to 100%, or name a constituent with no feed.
 
 ## Versioning (option C)
 
-A rebalance is a new `BasketToken` with a new recipe. A migration zap (phase 2) redeems v1 in
-kind, trades only the difference between recipes, and mints v2 in one transaction. Holders who do
-not migrate keep a fully backed v1.
+A recipe is immutable, so a rebalance is a new `BasketToken` with new weights. `BasketMigrator` moves a
+holder across in one transaction: it redeems the old basket in kind, trades only the legs that changed, and
+mints the new one. Constituents both versions hold never leave the contract, so a rebalance that swaps one
+name out of a five-name basket pays spread on that one name rather than on all five.
+
+It charges no fee of its own — the two baskets already take a redeem fee on the way out and a mint fee on
+the way in, and a third would tax holders for following a rebalance the protocol asked them to make.
+Holders who do not migrate keep a fully backed old basket; nothing expires.
+
+`BasketZap` and `BasketMigrator` share `RouteExecutor`, which owns the router allow-list and the delta
+accounting. That code decides what a call may spend and refund, so keeping one copy is what stops a fix
+from landing on one contract and not the other. Each deployment keeps its own allow-list: sharing one would
+let a paused or replaced peer disable routing everywhere.
 
 ## Chain facts relied upon
 

@@ -82,6 +82,7 @@ cancel a scheduled operation it no longer wants.
 | Change basket fees | basket | `setFees(uint16,uint16,address)`, capped at 1% each |
 | Change zap fee | zap | `setFee(uint16)`, capped at 0.5% |
 | Allow-list a router | zap | `setRouter(address,bool)` |
+| Allow-list a router | migrator | `setRouter(address,bool)` — a separate list from the zap's, on purpose |
 | Pause or resume the zap | zap | `pause()` / `unpause()` |
 | List or delist a constituent | registry | `list`, `listMany`, `delist` |
 | Repoint a Chainlink feed | registry | `setFeed(address,address)` |
@@ -109,6 +110,10 @@ it, which leaves the vault fully functional and only removes on-chain NAV.
 **A router is compromised.** Schedule `setRouter(router, false)`. If the delay is too slow for the
 situation, `pause()` the zap first — it is also timelocked, so the real mitigation is that the zap holds
 nothing at rest. Mint and redeem in kind are unaffected by either.
+
+**A basket needs rebalancing.** Recipes are immutable, so create a new version and publish the migration
+path rather than trying to change the old one. `BasketMigrator` moves holders in one transaction and trades
+only the legs that differ; both versions stay fully backed, and nobody is forced to move.
 
 **Depth collapses under a live basket.** Recipes are immutable, so the basket cannot be repaired in place.
 Users are still protected per transaction by `minAmountOut`, and the failure mode is expensive entry and
