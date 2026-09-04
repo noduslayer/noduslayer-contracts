@@ -424,6 +424,97 @@ contract BasketZapTest is Test {
         _assertZapEmpty();
     }
 
+    // ---------------------------------------------------------------- stranded value
+
+    // Tokens can end up sitting in the zap: a route may touch an intermediate token that is neither the
+    // input nor a constituent, or someone simply transfers to the contract. Whatever the cause, the zap
+    // must account in deltas so a later caller cannot claim balances their own call did not create.
+
+    function test_RevertWhen_StrangerClaimsStrandedOutputTokenViaRedeem() public {
+        _seedShares();
+        usdg.mint(address(zap), 10_000e6);
+
+        address attacker = makeAddr("attacker");
+        vm.prank(alice);
+        assertTrue(basket.transfer(attacker, 1));
+
+        vm.startPrank(attacker);
+        basket.approve(address(zap), type(uint256).max);
+        vm.expectRevert(abi.encodeWithSelector(IBasketZap.InsufficientOutput.selector, 0, 1));
+        zap.zapRedeem(address(basket), 1, address(usdg), 1, new IBasketZap.Swap[](0), attacker, block.timestamp);
+        vm.stopPrank();
+
+        assertEq(usdg.balanceOf(attacker), 0);
+        assertEq(usdg.balanceOf(address(zap)), 10_000e6, "stranded balance must stay for sweep()");
+    }
+
+    function test_RevertWhen_StrangerMintsAgainstStrandedConstituents() public {
+        nvda.mint(address(zap), 20e18);
+        aapl.mint(address(zap), 15e18);
+
+        address attacker = makeAddr("attacker");
+        usdg.mint(attacker, 1);
+
+        vm.startPrank(attacker);
+        usdg.approve(address(zap), type(uint256).max);
+        vm.expectRevert(abi.encodeWithSelector(IBasketZap.InsufficientConstituent.selector, address(nvda), 0, 20e18));
+        zap.zapMint(address(basket), address(usdg), 1, 100e18, new IBasketZap.Swap[](0), attacker, block.timestamp);
+        vm.stopPrank();
+
+        assertEq(basket.balanceOf(attacker), 0);
+        assertEq(nvda.balanceOf(address(zap)), 20e18, "stranded balance must stay for sweep()");
+    }
+
+    function test_ZapMint_RefundsOnlyWhatThisCallProduced() public {
+        usdg.mint(address(zap), 500e6);
+        nvda.mint(address(zap), 3e18);
+
+        // 9e18 shares need 1.8 NVDA and 1.35 AAPL; the route buys a little more of each.
+        vm.prank(alice);
+        zap.zapMint(address(basket), address(usdg), 1000e6, 9e18, _mintSwaps(2e18, 1.4e18), bob, block.timestamp);
+
+        // Alice gets back her own surplus and unspent input, never the pre-existing balances.
+        assertEq(nvda.balanceOf(alice), 0.2e18);
+        assertEq(aapl.balanceOf(alice), 0.05e18);
+        assertEq(usdg.balanceOf(alice), 9000e6 + 78_800_000);
+        assertEq(usdg.balanceOf(address(zap)), 500e6, "stranded input untouched");
+        assertEq(nvda.balanceOf(address(zap)), 3e18, "stranded constituent untouched");
+    }
+
+    function test_RevertWhen_RouteWouldOutspendTheCallersOwnInput() public {
+        usdg.mint(address(zap), 10_000e6);
+
+        // The route costs 1,067 USDG but Alice supplies 1,000. Without delta accounting the stranded
+        // balance would have silently covered the difference.
+        vm.expectRevert();
+        vm.prank(alice);
+        zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, _mintSwaps(2.5e18, 1.5e18), bob, block.timestamp);
+
+        assertEq(usdg.balanceOf(address(zap)), 10_000e6);
+    }
+
+    function test_ZapRedeem_PaysOnlyWhatThisCallProduced() public {
+        _seedShares();
+        usdg.mint(address(zap), 10_000e6);
+
+        vm.prank(alice);
+        uint256 amountOut = zap.zapRedeem(
+            address(basket), 5e18, address(usdg), 470e6, _redeemSwaps(0.999e18, 0.74925e18), bob, block.timestamp
+        );
+
+        assertEq(amountOut, 474_572_952);
+        assertEq(usdg.balanceOf(address(zap)), 10_000e6, "stranded balance untouched");
+    }
+
+    function test_Sweep_RemainsTheOnlyExitForStrandedValue() public {
+        usdg.mint(address(zap), 777e6);
+
+        vm.prank(protocolOwner);
+        zap.sweep(address(usdg), bob);
+        assertEq(usdg.balanceOf(bob), 777e6);
+        assertEq(usdg.balanceOf(address(zap)), 0);
+    }
+
     // ---------------------------------------------------------------- helpers
 
     function _seedShares() internal {

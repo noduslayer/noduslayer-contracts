@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {IBasketFactory} from "./IBasketFactory.sol";
+
 interface IBasketZap {
     /// @param router    Allow-listed router that executes the leg.
     /// @param sellToken Token the leg spends; approved to `router` for the duration of the call.
@@ -46,6 +48,9 @@ interface IBasketZap {
     error FeeTooHigh();
     error ZeroAddress();
     error ZeroAmount();
+    error UntrackedToken(address token);
+
+    function factory() external view returns (IBasketFactory);
 
     function feeBps() external view returns (uint16);
 
@@ -72,4 +77,18 @@ interface IBasketZap {
         address to,
         uint256 deadline
     ) external returns (uint256 amountOut);
+
+    // --- governance surface ---
+
+    function setRouter(address router, bool allowed) external;
+
+    function setFee(uint16 feeBps_) external;
+
+    function setTreasury(address treasury_) external;
+
+    function pause() external;
+
+    function unpause() external;
+
+    function sweep(address token, address to) external;
 }
