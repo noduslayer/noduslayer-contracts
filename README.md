@@ -34,9 +34,18 @@ leftover, so a malformed route can only cost its own sender.
 | `BasketLens` | Read-only NAV and per-constituent quotes from Chainlink. |
 
 - [`docs/design.md`](docs/design.md) — architecture, invariants, fee model, threat model
+- [`docs/runbook.md`](docs/runbook.md) — deployment, governance and incident response
 - [`docs/baskets.md`](docs/baskets.md) — the 60 curated baskets and the depth caps that shaped them
 - [`docs/stock-universe.md`](docs/stock-universe.md) — all 194 constituents with measured liquidity
+- [`docs/deployments.md`](docs/deployments.md) — deployed addresses
 - [`docs/audit/`](docs/audit) — internal review, Slither and Aderyn output
+
+## Related repositories
+
+[`noduslayer-quoter`](https://github.com/noduslayer/noduslayer-quoter) is the read-only route quoting
+service. It encodes calls to these contracts by hand, so it pins itself to [`contracts/abi`](contracts/abi)
+— `selectors.json` is published from this repository and asserted there, which turns a signature change into
+a failing test rather than a reverted transaction.
 
 ## Development
 
@@ -73,15 +82,18 @@ deployments live in `Uniswap/contracts/deployments/4663.md`.
 
 ```sh
 cd contracts
-export OWNER=0x...       # multisig or timelock that will accept ownership
-export TREASURY=0x...    # fee recipient
+export MULTISIG=0x...            # proposer and executor on the timelock
+export TREASURY=0x...            # fee recipient
+export TIMELOCK_MIN_DELAY=172800 # 2 days
 
 forge script script/Deploy.s.sol --rpc-url robinhood --account deployer --broadcast \
   --verify --verifier blockscout --verifier-url https://robinhoodchain.blockscout.com/api
 ```
 
-Ownership transfer is two-step: `OWNER` must call `acceptOwnership()` on the registry, factory and zap.
-Then create baskets:
+This also deploys a `TimelockController` and stages ownership of the registry, factory and zap to it.
+Ownership is two-step and the incoming owner is the timelock, so acceptance is itself a scheduled action —
+`script/TimelockAccept.s.sol` drives it. [`docs/runbook.md`](docs/runbook.md) has the full sequence and the
+checks to run afterwards. Then create baskets:
 
 ```sh
 export FACTORY=0x...
@@ -98,7 +110,11 @@ The v1 contracts are complete, with unit, fuzz and mainnet-fork coverage and an 
 published Robinhood stock tokens can be listed; 35 carry a Chainlink feed and can be priced on-chain.
 Baskets are curated by the protocol — `createBasket` is `onlyOwner`.
 
-Still outstanding: an independent audit, deployment behind a timelock, the off-chain quote service, and a
+Governance runs through an OpenZeppelin `TimelockController`; redemption is deliberately outside it, so
+holders can exit even if governance is captured. The quote service is built and tested but has not run
+against a live deployment, and it does not yet quote Uniswap v4.
+
+Still outstanding: an independent audit, a testnet rehearsal, v4 and RFQ coverage in the quoter, and a
 front end.
 
 Tokenized equities on Robinhood Chain are not available to US persons. Any front end must geo-block
