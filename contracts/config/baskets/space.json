@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Space",
   "symbol": "SPACE",
+  "theme": "Frontier and space",
+  "description": "Concentrated space exposure: SPCX with RKLB.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Cloud",
   "symbol": "CLOUD",
+  "theme": "Software, cloud and data",
+  "description": "Hyperscale cloud and enterprise software platforms.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

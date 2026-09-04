@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Frontier Tech",
   "symbol": "FRNT",
+  "theme": "Frontier and space",
+  "description": "NVDA anchoring a spread of small positions across space, quantum, GPU clouds and mining.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

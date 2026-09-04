@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Legacy Tech",
   "symbol": "LEGACY",
+  "theme": "Geography and consumer",
+  "description": "Long-established technology franchises.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Metals",
   "symbol": "METAL",
+  "theme": "Commodities and materials",
+  "description": "Silver and rare-earth exposure, 60/40.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

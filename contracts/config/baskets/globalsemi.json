@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Global Semis",
   "symbol": "GSEMI",
+  "theme": "AI and semiconductors",
+  "description": "Semiconductor leaders across Taiwan, the U.S. and Europe.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

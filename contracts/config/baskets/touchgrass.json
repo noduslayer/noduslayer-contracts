@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Touch Grass",
   "symbol": "GRASS",
+  "theme": "Meme and retail culture",
+  "description": "Broad equities, short-term Treasuries and silver: the basket for logging off.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

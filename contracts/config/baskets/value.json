@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Value",
   "symbol": "VALUE",
+  "theme": "Style and factor",
+  "description": "Established technology names outside the growth favourites: INTC, BABA, DELL, ORCL.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

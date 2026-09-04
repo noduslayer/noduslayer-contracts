@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer EV & Autonomy",
   "symbol": "EV",
+  "theme": "Geography and consumer",
+  "description": "Electric vehicles and the compute behind autonomy: TSLA and NVDA.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

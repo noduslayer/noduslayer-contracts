@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer All Weather",
   "symbol": "ALLW",
+  "theme": "Allocation and defensive",
+  "description": "A four-asset allocation across equities, short-term Treasuries, silver and oil.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

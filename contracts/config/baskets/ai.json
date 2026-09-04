@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer AI",
   "symbol": "AI",
+  "theme": "AI and semiconductors",
+  "description": "AI compute across chips, foundry, memory and software, led by NVDA.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

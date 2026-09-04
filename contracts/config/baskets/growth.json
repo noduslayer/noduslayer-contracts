@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Growth",
   "symbol": "GROWTH",
+  "theme": "Style and factor",
+  "description": "High-growth names across AI compute, data software, stablecoins and a bitcoin treasury.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

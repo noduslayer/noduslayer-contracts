@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer AI Cloud",
   "symbol": "AICLD",
+  "theme": "AI and semiconductors",
+  "description": "NVDA-heavy exposure to AI compute and the cloud infrastructure that rents it out.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

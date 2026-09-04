@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Crypto Equities",
   "symbol": "CRYPTOEQ",
+  "theme": "Crypto and fintech",
+  "description": "Listed equities whose businesses track crypto markets: a bitcoin treasury, an exchange and a stablecoin issuer.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

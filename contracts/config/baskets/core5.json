@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Core 5",
   "symbol": "CORE5",
+  "theme": "Core and broad market",
+  "description": "The five largest U.S. technology platforms, market-weighted.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

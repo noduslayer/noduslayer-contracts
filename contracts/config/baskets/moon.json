@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer To The Moon",
   "symbol": "MOON",
+  "theme": "Meme and retail culture",
+  "description": "SPCX-led space exposure with NVDA and RKLB.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

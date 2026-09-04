@@ -1,0 +1,1277 @@
+{
+  "generatedBy": "config/build-catalogue.sh",
+  "baskets": [
+    {
+      "id": "adtech",
+      "name": "NodusLayer Digital Ads",
+      "symbol": "ADS",
+      "theme": "Software, cloud and data",
+      "description": "The two largest digital advertising platforms, equal-weighted.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "GOOGL",
+        "META"
+      ],
+      "weightsBps": [
+        5000,
+        5000
+      ]
+    },
+    {
+      "id": "ai",
+      "name": "NodusLayer AI",
+      "symbol": "AI",
+      "theme": "AI and semiconductors",
+      "description": "AI compute across chips, foundry, memory and software, led by NVDA.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AMD",
+        "TSM",
+        "MU",
+        "PLTR"
+      ],
+      "weightsBps": [
+        3000,
+        2000,
+        2000,
+        1500,
+        1500
+      ]
+    },
+    {
+      "id": "aicloud",
+      "name": "NodusLayer AI Cloud",
+      "symbol": "AICLD",
+      "theme": "AI and semiconductors",
+      "description": "NVDA-heavy exposure to AI compute and the cloud infrastructure that rents it out.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "MU",
+        "DELL",
+        "CRWV",
+        "NBIS"
+      ],
+      "weightsBps": [
+        5000,
+        2000,
+        1800,
+        800,
+        400
+      ]
+    },
+    {
+      "id": "aiinfra",
+      "name": "NodusLayer AI Infrastructure",
+      "symbol": "AIINF",
+      "theme": "AI and semiconductors",
+      "description": "The hardware stack behind AI data centres: GPUs, memory, servers, storage and GPU clouds.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "MU",
+        "DELL",
+        "SNDK",
+        "CRWV",
+        "NBIS"
+      ],
+      "weightsBps": [
+        3000,
+        2500,
+        2000,
+        1500,
+        800,
+        200
+      ]
+    },
+    {
+      "id": "allweather",
+      "name": "NodusLayer All Weather",
+      "symbol": "ALLW",
+      "theme": "Allocation and defensive",
+      "description": "A four-asset allocation across equities, short-term Treasuries, silver and oil.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "SGOV",
+        "SLV",
+        "USO"
+      ],
+      "weightsBps": [
+        3500,
+        3000,
+        2000,
+        1500
+      ]
+    },
+    {
+      "id": "asia",
+      "name": "NodusLayer Asia Tech",
+      "symbol": "ASIA",
+      "theme": "Geography and consumer",
+      "description": "Asian technology leaders, weighted toward TSM and BABA with a Korea sleeve.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "TSM",
+        "BABA",
+        "EWY"
+      ],
+      "weightsBps": [
+        5000,
+        4400,
+        600
+      ]
+    },
+    {
+      "id": "balanced",
+      "name": "NodusLayer Balanced",
+      "symbol": "BAL",
+      "theme": "Allocation and defensive",
+      "description": "Broad equities and short-term Treasuries with a growth sleeve in NVDA and a silver hedge.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "SGOV",
+        "NVDA",
+        "SLV"
+      ],
+      "weightsBps": [
+        4000,
+        3000,
+        2000,
+        1000
+      ]
+    },
+    {
+      "id": "boomer",
+      "name": "NodusLayer Boomer Tech",
+      "symbol": "BOOMER",
+      "theme": "Meme and retail culture",
+      "description": "Established, long-listed technology names rather than the current growth favourites.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "INTC",
+        "DELL",
+        "BABA",
+        "ORCL"
+      ],
+      "weightsBps": [
+        3500,
+        3200,
+        2500,
+        800
+      ]
+    },
+    {
+      "id": "broad",
+      "name": "NodusLayer Broad Market",
+      "symbol": "BROAD",
+      "theme": "Core and broad market",
+      "description": "U.S. large caps with a Nasdaq tilt: 60% SPY, 40% QQQ.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "QQQ"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "btcproxy",
+      "name": "NodusLayer Bitcoin Proxy",
+      "symbol": "BTCPX",
+      "theme": "Crypto and fintech",
+      "description": "Bitcoin exposure through listed equities: a corporate treasury holder, an exchange and a miner.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSTR",
+        "COIN",
+        "CLSK"
+      ],
+      "weightsBps": [
+        5500,
+        4100,
+        400
+      ]
+    },
+    {
+      "id": "buythedip",
+      "name": "NodusLayer Buy The Dip",
+      "symbol": "BTD",
+      "theme": "Meme and retail culture",
+      "description": "Out-of-favour large-cap technology, for holders who buy what has fallen.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "INTC",
+        "BABA",
+        "DELL"
+      ],
+      "weightsBps": [
+        4000,
+        3500,
+        2500
+      ]
+    },
+    {
+      "id": "cash",
+      "name": "NodusLayer Cash Plus",
+      "symbol": "CASHP",
+      "theme": "Allocation and defensive",
+      "description": "Mostly short-term Treasuries with a small equity sleeve.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SGOV",
+        "SPY"
+      ],
+      "weightsBps": [
+        8000,
+        2000
+      ]
+    },
+    {
+      "id": "china",
+      "name": "NodusLayer China Exposure",
+      "symbol": "CHINA",
+      "theme": "Geography and consumer",
+      "description": "China exposure through BABA, with TSM and a Korea sleeve alongside.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "BABA",
+        "TSM",
+        "EWY"
+      ],
+      "weightsBps": [
+        7400,
+        2000,
+        600
+      ]
+    },
+    {
+      "id": "chipeq",
+      "name": "NodusLayer Chip Equipment",
+      "symbol": "CHIPEQ",
+      "theme": "AI and semiconductors",
+      "description": "Semiconductor manufacturing: lithography, foundry and an integrated device maker.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "ASML",
+        "TSM",
+        "INTC"
+      ],
+      "weightsBps": [
+        3500,
+        3500,
+        3000
+      ]
+    },
+    {
+      "id": "cloud",
+      "name": "NodusLayer Cloud",
+      "symbol": "CLOUD",
+      "theme": "Software, cloud and data",
+      "description": "Hyperscale cloud and enterprise software platforms.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSFT",
+        "GOOGL",
+        "PLTR",
+        "ORCL"
+      ],
+      "weightsBps": [
+        4000,
+        3000,
+        2200,
+        800
+      ]
+    },
+    {
+      "id": "commodity",
+      "name": "NodusLayer Commodities",
+      "symbol": "CMDTY",
+      "theme": "Commodities and materials",
+      "description": "Silver and oil through their listed trusts, 60/40.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SLV",
+        "USO"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "consumer",
+      "name": "NodusLayer Consumer",
+      "symbol": "CONS",
+      "theme": "Geography and consumer",
+      "description": "Consumer-facing platforms spanning e-commerce, autos, Chinese retail and a retail-trader favourite.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "AMZN",
+        "TSLA",
+        "BABA",
+        "GME"
+      ],
+      "weightsBps": [
+        3500,
+        3000,
+        2500,
+        1000
+      ]
+    },
+    {
+      "id": "core5",
+      "name": "NodusLayer Core 5",
+      "symbol": "CORE5",
+      "theme": "Core and broad market",
+      "description": "The five largest U.S. technology platforms, market-weighted.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN"
+      ],
+      "weightsBps": [
+        2500,
+        2000,
+        2000,
+        2000,
+        1500
+      ]
+    },
+    {
+      "id": "cryptoeq",
+      "name": "NodusLayer Crypto Equities",
+      "symbol": "CRYPTOEQ",
+      "theme": "Crypto and fintech",
+      "description": "Listed equities whose businesses track crypto markets: a bitcoin treasury, an exchange and a stablecoin issuer.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSTR",
+        "COIN",
+        "CRCL"
+      ],
+      "weightsBps": [
+        4000,
+        3500,
+        2500
+      ]
+    },
+    {
+      "id": "data",
+      "name": "NodusLayer Data & Analytics",
+      "symbol": "DATA",
+      "theme": "Software, cloud and data",
+      "description": "Data platforms and the compute they run on.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "PLTR",
+        "MSFT",
+        "NVDA"
+      ],
+      "weightsBps": [
+        4500,
+        3000,
+        2500
+      ]
+    },
+    {
+      "id": "defensive",
+      "name": "NodusLayer Defensive",
+      "symbol": "DEF",
+      "theme": "Allocation and defensive",
+      "description": "Short-term Treasuries first, with silver and oil as real-asset hedges.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SGOV",
+        "SLV",
+        "USO"
+      ],
+      "weightsBps": [
+        5000,
+        3000,
+        2000
+      ]
+    },
+    {
+      "id": "diamondhands",
+      "name": "NodusLayer Diamond Hands",
+      "symbol": "DIAMOND",
+      "theme": "Meme and retail culture",
+      "description": "The retail-trader canon: GME, MSTR, TSLA and PLTR.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "GME",
+        "MSTR",
+        "TSLA",
+        "PLTR"
+      ],
+      "weightsBps": [
+        3500,
+        3000,
+        2000,
+        1500
+      ]
+    },
+    {
+      "id": "enterprise",
+      "name": "NodusLayer Enterprise IT",
+      "symbol": "ENTIT",
+      "theme": "Software, cloud and data",
+      "description": "Enterprise IT: software, servers, chips and databases.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSFT",
+        "DELL",
+        "INTC",
+        "ORCL"
+      ],
+      "weightsBps": [
+        3500,
+        3200,
+        2500,
+        800
+      ]
+    },
+    {
+      "id": "eqtech",
+      "name": "NodusLayer Equal-Weight Tech",
+      "symbol": "EQTECH",
+      "theme": "Core and broad market",
+      "description": "Five mega-cap technology platforms, equal-weighted.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "META"
+      ],
+      "weightsBps": [
+        2000,
+        2000,
+        2000,
+        2000,
+        2000
+      ]
+    },
+    {
+      "id": "evauto",
+      "name": "NodusLayer EV & Autonomy",
+      "symbol": "EV",
+      "theme": "Geography and consumer",
+      "description": "Electric vehicles and the compute behind autonomy: TSLA and NVDA.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "TSLA",
+        "NVDA"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "fintech",
+      "name": "NodusLayer Fintech",
+      "symbol": "FINTECH",
+      "theme": "Crypto and fintech",
+      "description": "A stablecoin issuer and a crypto exchange, equal-weighted.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "CRCL",
+        "COIN"
+      ],
+      "weightsBps": [
+        5000,
+        5000
+      ]
+    },
+    {
+      "id": "foundry",
+      "name": "NodusLayer Foundry",
+      "symbol": "FNDRY",
+      "theme": "AI and semiconductors",
+      "description": "Chip fabrication and the equipment it depends on.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "TSM",
+        "ASML",
+        "INTC"
+      ],
+      "weightsBps": [
+        5000,
+        3000,
+        2000
+      ]
+    },
+    {
+      "id": "frontier",
+      "name": "NodusLayer Frontier Tech",
+      "symbol": "FRNT",
+      "theme": "Frontier and space",
+      "description": "NVDA anchoring a spread of small positions across space, quantum, GPU clouds and mining.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "RKLB",
+        "CRWV",
+        "RGTI",
+        "CLSK",
+        "IONQ",
+        "NBIS"
+      ],
+      "weightsBps": [
+        6000,
+        1500,
+        800,
+        500,
+        400,
+        400,
+        400
+      ]
+    },
+    {
+      "id": "gigachad",
+      "name": "NodusLayer Gigachad",
+      "symbol": "GIGA",
+      "theme": "Meme and retail culture",
+      "description": "Large-cap technology with a GME kicker.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "GOOGL",
+        "AAPL",
+        "INTC",
+        "GME"
+      ],
+      "weightsBps": [
+        3000,
+        2500,
+        2500,
+        1500,
+        500
+      ]
+    },
+    {
+      "id": "globalsemi",
+      "name": "NodusLayer Global Semis",
+      "symbol": "GSEMI",
+      "theme": "AI and semiconductors",
+      "description": "Semiconductor leaders across Taiwan, the U.S. and Europe.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "TSM",
+        "NVDA",
+        "ASML",
+        "AMD"
+      ],
+      "weightsBps": [
+        3500,
+        2500,
+        2500,
+        1500
+      ]
+    },
+    {
+      "id": "gpu",
+      "name": "NodusLayer GPU Duopoly",
+      "symbol": "GPU",
+      "theme": "AI and semiconductors",
+      "description": "The two GPU designers, 60/40.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AMD"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "growth",
+      "name": "NodusLayer Growth",
+      "symbol": "GROWTH",
+      "theme": "Style and factor",
+      "description": "High-growth names across AI compute, data software, stablecoins and a bitcoin treasury.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "PLTR",
+        "CRCL",
+        "MSTR"
+      ],
+      "weightsBps": [
+        3000,
+        2500,
+        2500,
+        2000
+      ]
+    },
+    {
+      "id": "hardware",
+      "name": "NodusLayer Hardware",
+      "symbol": "HDWR",
+      "theme": "Geography and consumer",
+      "description": "Consumer and enterprise hardware: devices, servers and storage.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "AAPL",
+        "DELL",
+        "SNDK"
+      ],
+      "weightsBps": [
+        4000,
+        3000,
+        3000
+      ]
+    },
+    {
+      "id": "hodl",
+      "name": "NodusLayer HODL",
+      "symbol": "HODL",
+      "theme": "Meme and retail culture",
+      "description": "Crypto-adjacent equities for holders who do not sell.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSTR",
+        "COIN",
+        "CRCL",
+        "CLSK"
+      ],
+      "weightsBps": [
+        4100,
+        3500,
+        2000,
+        400
+      ]
+    },
+    {
+      "id": "inflation",
+      "name": "NodusLayer Inflation Hedge",
+      "symbol": "INFL",
+      "theme": "Commodities and materials",
+      "description": "Silver, oil and rare-earth exposure as an inflation hedge.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SLV",
+        "USO",
+        "USAR"
+      ],
+      "weightsBps": [
+        4000,
+        3000,
+        3000
+      ]
+    },
+    {
+      "id": "legacy",
+      "name": "NodusLayer Legacy Tech",
+      "symbol": "LEGACY",
+      "theme": "Geography and consumer",
+      "description": "Long-established technology franchises.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "INTC",
+        "DELL",
+        "BABA",
+        "ORCL"
+      ],
+      "weightsBps": [
+        3500,
+        3000,
+        2700,
+        800
+      ]
+    },
+    {
+      "id": "lowvol",
+      "name": "NodusLayer Low Volatility",
+      "symbol": "LOWVOL",
+      "theme": "Allocation and defensive",
+      "description": "Short-term Treasuries with modest equity and silver sleeves.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SGOV",
+        "SPY",
+        "SLV"
+      ],
+      "weightsBps": [
+        6000,
+        2500,
+        1500
+      ]
+    },
+    {
+      "id": "mag7",
+      "name": "NodusLayer Magnificent Seven",
+      "symbol": "MAG7",
+      "theme": "Core and broad market",
+      "description": "The Magnificent Seven, weighted toward NVDA.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "META",
+        "TSLA"
+      ],
+      "weightsBps": [
+        2000,
+        1500,
+        1500,
+        1500,
+        1500,
+        1200,
+        800
+      ]
+    },
+    {
+      "id": "memory",
+      "name": "NodusLayer Memory & Storage",
+      "symbol": "MEM",
+      "theme": "AI and semiconductors",
+      "description": "Memory and storage, equal-weighted.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MU",
+        "SNDK"
+      ],
+      "weightsBps": [
+        5000,
+        5000
+      ]
+    },
+    {
+      "id": "metals",
+      "name": "NodusLayer Metals",
+      "symbol": "METAL",
+      "theme": "Commodities and materials",
+      "description": "Silver and rare-earth exposure, 60/40.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SLV",
+        "USAR"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "momentum",
+      "name": "NodusLayer Momentum",
+      "symbol": "MOM",
+      "theme": "Style and factor",
+      "description": "Recent high-momentum names across a bitcoin treasury, data software, stablecoins and space.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSTR",
+        "PLTR",
+        "CRCL",
+        "RKLB"
+      ],
+      "weightsBps": [
+        3500,
+        3000,
+        1900,
+        1600
+      ]
+    },
+    {
+      "id": "moon",
+      "name": "NodusLayer To The Moon",
+      "symbol": "MOON",
+      "theme": "Meme and retail culture",
+      "description": "SPCX-led space exposure with NVDA and RKLB.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPCX",
+        "NVDA",
+        "RKLB"
+      ],
+      "weightsBps": [
+        6000,
+        2400,
+        1600
+      ]
+    },
+    {
+      "id": "nasdaq",
+      "name": "NodusLayer Nasdaq Tilt",
+      "symbol": "QTILT",
+      "theme": "Core and broad market",
+      "description": "Nasdaq-100 tilt: 80% QQQ, 20% SPY.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "QQQ",
+        "SPY"
+      ],
+      "weightsBps": [
+        8000,
+        2000
+      ]
+    },
+    {
+      "id": "newspace",
+      "name": "NodusLayer New Space",
+      "symbol": "NSPACE",
+      "theme": "Frontier and space",
+      "description": "Space exposure led by SPCX, with RKLB and NVDA.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPCX",
+        "RKLB",
+        "NVDA"
+      ],
+      "weightsBps": [
+        7000,
+        1600,
+        1400
+      ]
+    },
+    {
+      "id": "paperhands",
+      "name": "NodusLayer Paper Hands",
+      "symbol": "PAPER",
+      "theme": "Meme and retail culture",
+      "description": "Mostly short-term Treasuries: the basket for selling early.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SGOV",
+        "SPY",
+        "SLV"
+      ],
+      "weightsBps": [
+        7000,
+        2000,
+        1000
+      ]
+    },
+    {
+      "id": "quantum",
+      "name": "NodusLayer Quantum & Emerging",
+      "symbol": "QNTM",
+      "theme": "Frontier and space",
+      "description": "NVDA anchoring small positions in quantum computing, space, GPU clouds and mining.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "CRWV",
+        "RGTI",
+        "RKLB",
+        "IONQ",
+        "CLSK",
+        "NBIS"
+      ],
+      "weightsBps": [
+        7000,
+        800,
+        500,
+        500,
+        400,
+        400,
+        400
+      ]
+    },
+    {
+      "id": "retail",
+      "name": "NodusLayer Retail",
+      "symbol": "RETAIL",
+      "theme": "Geography and consumer",
+      "description": "Retail and consumer platforms with a GME lead.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "GME",
+        "AMZN",
+        "TSLA"
+      ],
+      "weightsBps": [
+        4000,
+        3500,
+        2500
+      ]
+    },
+    {
+      "id": "semis",
+      "name": "NodusLayer Semiconductors",
+      "symbol": "SEMI",
+      "theme": "AI and semiconductors",
+      "description": "The semiconductor supply chain from design to fabrication and equipment.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "TSM",
+        "AMD",
+        "MU",
+        "ASML",
+        "INTC"
+      ],
+      "weightsBps": [
+        3000,
+        2000,
+        2000,
+        1500,
+        1000,
+        500
+      ]
+    },
+    {
+      "id": "sixtyforty",
+      "name": "NodusLayer 60/40",
+      "symbol": "SIXTY40",
+      "theme": "Allocation and defensive",
+      "description": "The classic 60/40: equities and short-term Treasuries.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "SGOV"
+      ],
+      "weightsBps": [
+        6000,
+        4000
+      ]
+    },
+    {
+      "id": "skynet",
+      "name": "NodusLayer Skynet",
+      "symbol": "SKYNET",
+      "theme": "Meme and retail culture",
+      "description": "AI compute, data software and the frontier names around them.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "PLTR",
+        "CRWV",
+        "RGTI",
+        "IONQ",
+        "NBIS",
+        "CLSK"
+      ],
+      "weightsBps": [
+        5500,
+        2000,
+        800,
+        500,
+        400,
+        400,
+        400
+      ]
+    },
+    {
+      "id": "sp500",
+      "name": "NodusLayer S&P Tilt",
+      "symbol": "SPTILT",
+      "theme": "Core and broad market",
+      "description": "S&P 500 tilt: 80% SPY, 20% QQQ.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "QQQ"
+      ],
+      "weightsBps": [
+        8000,
+        2000
+      ]
+    },
+    {
+      "id": "space",
+      "name": "NodusLayer Space",
+      "symbol": "SPACE",
+      "theme": "Frontier and space",
+      "description": "Concentrated space exposure: SPCX with RKLB.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPCX",
+        "RKLB"
+      ],
+      "weightsBps": [
+        8500,
+        1500
+      ]
+    },
+    {
+      "id": "stonks",
+      "name": "NodusLayer Stonks Only Go Up",
+      "symbol": "STONKS",
+      "theme": "Meme and retail culture",
+      "description": "Retail-trader favourites across gaming retail, autos, a bitcoin treasury and an exchange.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "GME",
+        "TSLA",
+        "MSTR",
+        "COIN"
+      ],
+      "weightsBps": [
+        3000,
+        2500,
+        2500,
+        2000
+      ]
+    },
+    {
+      "id": "tech",
+      "name": "NodusLayer Tech",
+      "symbol": "TECH",
+      "theme": "Core and broad market",
+      "description": "Large-cap technology: NVDA, AAPL, GOOGL, MSFT.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "AAPL",
+        "GOOGL",
+        "MSFT"
+      ],
+      "weightsBps": [
+        3000,
+        2500,
+        2500,
+        2000
+      ]
+    },
+    {
+      "id": "tendies",
+      "name": "NodusLayer Tendies",
+      "symbol": "TENDIES",
+      "theme": "Meme and retail culture",
+      "description": "Retail favourites: GME, AMZN, TSLA and COIN.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "GME",
+        "AMZN",
+        "TSLA",
+        "COIN"
+      ],
+      "weightsBps": [
+        3000,
+        3000,
+        2500,
+        1500
+      ]
+    },
+    {
+      "id": "touchgrass",
+      "name": "NodusLayer Touch Grass",
+      "symbol": "GRASS",
+      "theme": "Meme and retail culture",
+      "description": "Broad equities, short-term Treasuries and silver: the basket for logging off.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "SPY",
+        "SGOV",
+        "SLV"
+      ],
+      "weightsBps": [
+        5000,
+        3000,
+        2000
+      ]
+    },
+    {
+      "id": "trio",
+      "name": "NodusLayer Concentrated Trio",
+      "symbol": "TRIO",
+      "theme": "Core and broad market",
+      "description": "Three mega-caps, concentrated: NVDA, MSFT, AAPL.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "NVDA",
+        "MSFT",
+        "AAPL"
+      ],
+      "weightsBps": [
+        4000,
+        3000,
+        3000
+      ]
+    },
+    {
+      "id": "value",
+      "name": "NodusLayer Value",
+      "symbol": "VALUE",
+      "theme": "Style and factor",
+      "description": "Established technology names outside the growth favourites: INTC, BABA, DELL, ORCL.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "INTC",
+        "BABA",
+        "DELL",
+        "ORCL"
+      ],
+      "weightsBps": [
+        3200,
+        3200,
+        2800,
+        800
+      ]
+    },
+    {
+      "id": "yolo",
+      "name": "NodusLayer YOLO",
+      "symbol": "YOLO",
+      "theme": "Meme and retail culture",
+      "description": "Two positions, maximum conviction: MSTR and GME.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "MSTR",
+        "GME"
+      ],
+      "weightsBps": [
+        5500,
+        4500
+      ]
+    },
+    {
+      "id": "zoomer",
+      "name": "NodusLayer Zoomer Tech",
+      "symbol": "ZOOMER",
+      "theme": "Meme and retail culture",
+      "description": "Younger-generation favourites across data software, a bitcoin treasury, stablecoins, space and quantum.",
+      "mintFeeBps": 10,
+      "redeemFeeBps": 10,
+      "navPerShareUsd": 100,
+      "symbols": [
+        "PLTR",
+        "MSTR",
+        "CRCL",
+        "RKLB",
+        "IONQ"
+      ],
+      "weightsBps": [
+        3500,
+        2500,
+        2000,
+        1600,
+        400
+      ]
+    }
+  ]
+}

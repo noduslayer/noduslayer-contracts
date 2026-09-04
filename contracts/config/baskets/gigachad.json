@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Gigachad",
   "symbol": "GIGA",
+  "theme": "Meme and retail culture",
+  "description": "Large-cap technology with a GME kicker.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

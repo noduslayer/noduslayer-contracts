@@ -8,23 +8,23 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 forge build >/dev/null
 
-CONTRACTS=(BasketToken BasketFactory BasketZap BasketLens StockRegistry)
+CONTRACTS=(BasketToken BasketFactory BasketZap BasketMigrator BasketLens StockRegistry)
 for c in "${CONTRACTS[@]}"; do
   jq '.abi' "out/$c.sol/$c.json" > "abi/$c.json"
 done
 
-# Selectors for every external function across those ABIs, keyed by signature.
-{
+# Renders one ABI entry as its canonical signature, tuples included.
+SIG='"\(.name)(" + ([.inputs[] | if .type=="tuple" then "(" + ([.components[].type] | join(",")) + ")"
+  elif .type=="tuple[]" then "(" + ([.components[].type] | join(",")) + ")[]"
+  else .type end] | join(",")) + ")"'
+
+# Writes {"<key>": {signature: selector, ...}} for every unique signature on stdin.
+emit() {
+  local key=$1 first=1
   echo '{'
   echo '  "generatedBy": "abi/export.sh",'
-  echo '  "selectors": {'
-  first=1
-  for c in "${CONTRACTS[@]}"; do
-    jq -r '.[] | select(.type=="function") |
-      "\(.name)(" + ([.inputs[] | if .type=="tuple" then "(" + ([.components[].type] | join(",")) + ")"
-      elif .type=="tuple[]" then "(" + ([.components[].type] | join(",")) + ")[]"
-      else .type end] | join(",")) + ")"' "abi/$c.json"
-  done | sort -u | while read -r sig; do
+  echo "  \"$key\": {"
+  sort -u | while read -r sig; do
     [ $first -eq 0 ] && echo ','
     first=0
     printf '    "%s": "%s"' "$sig" "$(cast sig "$sig")"
@@ -32,6 +32,20 @@ done
   echo
   echo '  }'
   echo '}'
-} > abi/selectors.json
+}
 
-echo "exported $(ls abi/*.json | grep -vc selectors) ABIs and $(jq '.selectors | length' abi/selectors.json) selectors"
+# Selectors for every external function across those ABIs, keyed by signature.
+for c in "${CONTRACTS[@]}"; do
+  jq -r ".[] | select(.type==\"function\") | $SIG" "abi/$c.json"
+done | emit selectors > abi/selectors.json
+
+# Every custom error those contracts can revert with, plus the two the compiler raises itself. A consumer
+# that turns revert data into a message pins itself to this the way it pins selectors.
+{
+  printf 'Error(string)\nPanic(uint256)\n'
+  for c in "${CONTRACTS[@]}"; do
+    jq -r ".[] | select(.type==\"error\") | $SIG" "abi/$c.json"
+  done
+} | emit errors > abi/errors.json
+
+echo "exported ${#CONTRACTS[@]} ABIs, $(jq '.selectors | length' abi/selectors.json) selectors and $(jq '.errors | length' abi/errors.json) errors"

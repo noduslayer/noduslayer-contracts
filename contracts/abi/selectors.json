@@ -29,6 +29,7 @@
     "known(address)": "0x22dfc944",
     "list(address,address)": "0x3ecbbf39",
     "listMany(address[],address[])": "0xacce395c",
+    "migrate(address,address,uint256,uint256,uint256,(address,address,uint256,bytes)[],address,uint256)": "0x569d1bd5",
     "mint(uint256,address)": "0x94bf804d",
     "mintFeeBps()": "0x97c8bcc1",
     "name()": "0x06fdde03",

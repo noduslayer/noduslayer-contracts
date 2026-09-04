@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Broad Market",
   "symbol": "BROAD",
+  "theme": "Core and broad market",
+  "description": "U.S. large caps with a Nasdaq tilt: 60% SPY, 40% QQQ.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

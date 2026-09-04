@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer GPU Duopoly",
   "symbol": "GPU",
+  "theme": "AI and semiconductors",
+  "description": "The two GPU designers, 60/40.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

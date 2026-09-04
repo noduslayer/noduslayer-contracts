@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Bitcoin Proxy",
   "symbol": "BTCPX",
+  "theme": "Crypto and fintech",
+  "description": "Bitcoin exposure through listed equities: a corporate treasury holder, an exchange and a miner.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

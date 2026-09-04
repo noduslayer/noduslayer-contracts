@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Digital Ads",
   "symbol": "ADS",
+  "theme": "Software, cloud and data",
+  "description": "The two largest digital advertising platforms, equal-weighted.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer AI Infrastructure",
   "symbol": "AIINF",
+  "theme": "AI and semiconductors",
+  "description": "The hardware stack behind AI data centres: GPUs, memory, servers, storage and GPU clouds.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

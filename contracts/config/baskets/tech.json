@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Tech",
   "symbol": "TECH",
+  "theme": "Core and broad market",
+  "description": "Large-cap technology: NVDA, AAPL, GOOGL, MSFT.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

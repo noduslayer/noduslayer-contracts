@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Semiconductors",
   "symbol": "SEMI",
+  "theme": "AI and semiconductors",
+  "description": "The semiconductor supply chain from design to fabrication and equipment.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

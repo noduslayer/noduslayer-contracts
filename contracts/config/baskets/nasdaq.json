@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Nasdaq Tilt",
   "symbol": "QTILT",
+  "theme": "Core and broad market",
+  "description": "Nasdaq-100 tilt: 80% QQQ, 20% SPY.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Buy The Dip",
   "symbol": "BTD",
+  "theme": "Meme and retail culture",
+  "description": "Out-of-favour large-cap technology, for holders who buy what has fallen.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

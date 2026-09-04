@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Inflation Hedge",
   "symbol": "INFL",
+  "theme": "Commodities and materials",
+  "description": "Silver, oil and rare-earth exposure as an inflation hedge.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

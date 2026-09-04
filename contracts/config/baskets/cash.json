@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Cash Plus",
   "symbol": "CASHP",
+  "theme": "Allocation and defensive",
+  "description": "Mostly short-term Treasuries with a small equity sleeve.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

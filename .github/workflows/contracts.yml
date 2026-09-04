@@ -35,9 +35,9 @@ jobs:
 
       # Consumers pin themselves to abi/, so a signature change that is not exported is a broken contract
       # with the outside world.
-      - run: ./abi/export.sh
-      - name: abi artifact is up to date
-        run: git diff --exit-code -- abi/
+      - run: ./abi/export.sh && ./config/build-catalogue.sh
+      - name: published artifacts are up to date
+        run: git diff --exit-code -- abi/ config/catalogue.json
 
   # Config pins live mainnet addresses, feeds and measured pool depth, so it rots as the chain moves.
   # This runs against real state to catch that drift rather than discovering it at deploy time.

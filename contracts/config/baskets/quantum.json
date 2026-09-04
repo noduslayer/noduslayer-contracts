@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Quantum & Emerging",
   "symbol": "QNTM",
+  "theme": "Frontier and space",
+  "description": "NVDA anchoring small positions in quantum computing, space, GPU clouds and mining.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

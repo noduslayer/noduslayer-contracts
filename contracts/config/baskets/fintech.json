@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Fintech",
   "symbol": "FINTECH",
+  "theme": "Crypto and fintech",
+  "description": "A stablecoin issuer and a crypto exchange, equal-weighted.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

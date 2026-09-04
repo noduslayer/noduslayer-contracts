@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Hardware",
   "symbol": "HDWR",
+  "theme": "Geography and consumer",
+  "description": "Consumer and enterprise hardware: devices, servers and storage.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Commodities",
   "symbol": "CMDTY",
+  "theme": "Commodities and materials",
+  "description": "Silver and oil through their listed trusts, 60/40.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

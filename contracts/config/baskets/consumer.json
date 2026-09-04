@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Consumer",
   "symbol": "CONS",
+  "theme": "Geography and consumer",
+  "description": "Consumer-facing platforms spanning e-commerce, autos, Chinese retail and a retail-trader favourite.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

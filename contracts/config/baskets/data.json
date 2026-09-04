@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Data & Analytics",
   "symbol": "DATA",
+  "theme": "Software, cloud and data",
+  "description": "Data platforms and the compute they run on.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

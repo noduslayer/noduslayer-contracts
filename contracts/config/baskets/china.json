@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer China Exposure",
   "symbol": "CHINA",
+  "theme": "Geography and consumer",
+  "description": "China exposure through BABA, with TSM and a Korea sleeve alongside.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

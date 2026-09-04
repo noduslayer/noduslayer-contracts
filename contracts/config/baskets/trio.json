@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Concentrated Trio",
   "symbol": "TRIO",
+  "theme": "Core and broad market",
+  "description": "Three mega-caps, concentrated: NVDA, MSFT, AAPL.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

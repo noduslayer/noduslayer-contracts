@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Enterprise IT",
   "symbol": "ENTIT",
+  "theme": "Software, cloud and data",
+  "description": "Enterprise IT: software, servers, chips and databases.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

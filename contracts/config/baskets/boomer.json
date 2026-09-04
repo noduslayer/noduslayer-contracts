@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Boomer Tech",
   "symbol": "BOOMER",
+  "theme": "Meme and retail culture",
+  "description": "Established, long-listed technology names rather than the current growth favourites.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

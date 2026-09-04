@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Retail",
   "symbol": "RETAIL",
+  "theme": "Geography and consumer",
+  "description": "Retail and consumer platforms with a GME lead.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

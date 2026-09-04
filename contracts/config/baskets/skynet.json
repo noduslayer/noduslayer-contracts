@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Skynet",
   "symbol": "SKYNET",
+  "theme": "Meme and retail culture",
+  "description": "AI compute, data software and the frontier names around them.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

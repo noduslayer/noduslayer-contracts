@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Stonks Only Go Up",
   "symbol": "STONKS",
+  "theme": "Meme and retail culture",
+  "description": "Retail-trader favourites across gaming retail, autos, a bitcoin treasury and an exchange.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

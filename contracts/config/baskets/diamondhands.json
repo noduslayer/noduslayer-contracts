@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Diamond Hands",
   "symbol": "DIAMOND",
+  "theme": "Meme and retail culture",
+  "description": "The retail-trader canon: GME, MSTR, TSLA and PLTR.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

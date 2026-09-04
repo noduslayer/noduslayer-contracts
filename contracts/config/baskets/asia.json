@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Asia Tech",
   "symbol": "ASIA",
+  "theme": "Geography and consumer",
+  "description": "Asian technology leaders, weighted toward TSM and BABA with a Korea sleeve.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

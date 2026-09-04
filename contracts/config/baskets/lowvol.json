@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Low Volatility",
   "symbol": "LOWVOL",
+  "theme": "Allocation and defensive",
+  "description": "Short-term Treasuries with modest equity and silver sleeves.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

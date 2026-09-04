@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Zoomer Tech",
   "symbol": "ZOOMER",
+  "theme": "Meme and retail culture",
+  "description": "Younger-generation favourites across data software, a bitcoin treasury, stablecoins, space and quantum.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,

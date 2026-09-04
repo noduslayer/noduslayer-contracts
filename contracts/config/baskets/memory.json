@@ -1,6 +1,8 @@
 {
   "name": "NodusLayer Memory & Storage",
   "symbol": "MEM",
+  "theme": "AI and semiconductors",
+  "description": "Memory and storage, equal-weighted.",
   "mintFeeBps": 10,
   "redeemFeeBps": 10,
   "navPerShareUsd": 100,
