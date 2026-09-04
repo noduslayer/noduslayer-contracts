@@ -103,7 +103,7 @@ contract Deploy is Script {
         console2.log("multisig          ", multisig);
         console2.log("treasury          ", treasury);
         console2.log("tokens listed     ", listed);
-        console2.log("next: run TimelockAccept.s.sol with MODE=schedule, wait the delay, then MODE=execute");
+        console2.log("next: TimelockAccept.s.sol with MODE=schedule, wait the delay, then MODE=execute OP=<id>");
     }
 
     function _config() private view returns (string memory) {

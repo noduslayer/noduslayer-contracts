@@ -36,14 +36,16 @@ allow-lists the routers from the config, and transfers ownership of the registry
 timelock. Record every printed address in `docs/deployments.md` before continuing.
 
 Ownership is staged, not final. `Ownable2Step` requires the incoming owner to accept, and the incoming owner
-is the timelock, so acceptance is itself a governance action:
+is the timelock, so acceptance is itself a governance action — the first one, and it takes the same path as
+every later one. "Governance" below explains how the multisig submits what the scripts produce.
 
 ```sh
-export TIMELOCK=0x... REGISTRY=0x... FACTORY=0x... ZAP=0x...
+export TIMELOCK=0x... REGISTRY=0x... FACTORY=0x... ZAP=0x... MULTISIG=0x...
 
-MODE=schedule forge script script/TimelockAccept.s.sol --rpc-url robinhood --account multisig --broadcast
-# wait TIMELOCK_MIN_DELAY
-MODE=execute  forge script script/TimelockAccept.s.sol --rpc-url robinhood --account multisig --broadcast
+MODE=schedule forge script script/TimelockAccept.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit the printed scheduleTx from the multisig, wait TIMELOCK_MIN_DELAY, then
+MODE=execute OP=0x<id> forge script script/TimelockAccept.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit the printed executeTx from the multisig
 ```
 
 Verify before going further:
@@ -60,22 +62,70 @@ deployment before that check passes.
 
 ## Creating a basket
 
+`createBasket` is `onlyOwner` and the owner is the timelock, so baskets are created by scheduling an
+operation and executing it after the delay:
+
 ```sh
-export FACTORY=0x...
-BASKET=tech forge script script/CreateBasket.s.sol --rpc-url robinhood --account multisig --broadcast
+export FACTORY=0x... TIMELOCK=0x... MULTISIG=0x...
+BASKETS=tech,ai,semis MODE=schedule forge script script/CreateBasket.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit scheduleTx from the multisig; after the delay:
+MODE=execute OP=0x<id> forge script script/CreateBasket.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit executeTx from the multisig
 ```
 
-The script derives units from live Chainlink prices and rejects a recipe that breaches a depth cap, falls
-below the 1% weight floor, fails to sum to 100%, or names a constituent with no feed. Recompute depth before
-adding baskets: liquidity moves, and `contracts/config/robinhood-mainnet.json` is a snapshot.
+The script derives units from live Chainlink prices when it schedules, rejects a recipe that breaches a
+depth cap, falls below the 1% weight floor, fails to sum to 100%, or names a constituent with no feed, and
+pins the derived recipe in `governance/ops/<id>.json`. Execution reads that file, so what goes live after
+the delay is the recipe that was reviewed, not a re-derivation from wherever prices sit two days later.
+Recompute depth before adding baskets: liquidity moves, and `contracts/config/robinhood-mainnet.json` is a
+snapshot.
 
-Note that `createBasket` is `onlyOwner`, so after the timelock takes ownership this too must be scheduled
-and executed through it.
+`createBasket` costs about 2.25M gas per basket (measured; `forge test --gas-report` on
+`test/BasketFactory.t.sol`), so one operation carries at most ten baskets, which keeps it inside a 32M
+transaction. The sixty-basket catalogue is six operations. Chain 4663 advertises a 2^50 block gas limit,
+which says nothing about the per-transaction cap Arbitrum enforces; ten per operation assumes the 32M
+Arbitrum default, and the testnet rehearsal is where that assumption is checked.
+
+The label seeds the operation's salt, so re-creating a set of baskets that was created before needs a
+`LABEL` of its own.
 
 ## Governance
 
 Every parameter change goes through the timelock: schedule, wait the delay, execute. The multisig can also
 cancel a scheduled operation it no longer wants.
+
+`script/Govern.s.sol` drives any call. Build the calldata with `cast`; several targets and calldatas,
+comma-separated in the same order, execute as one atomic batch:
+
+```sh
+export TIMELOCK=0x... MULTISIG=0x...
+TARGETS=$ZAP CALLDATAS=$(cast calldata "setFee(uint16)" 30) LABEL="zap fee to 30 bps, 2026-09-05" \
+  MODE=schedule forge script script/Govern.s.sol --rpc-url robinhood --sender $MULTISIG
+# after the delay
+MODE=execute OP=0x<id> forge script script/Govern.s.sol --rpc-url robinhood --sender $MULTISIG
+MODE=status  OP=0x<id> forge script script/Govern.s.sol --rpc-url robinhood   # pending, ready or done
+MODE=cancel  OP=0x<id> forge script script/Govern.s.sol --rpc-url robinhood --sender $MULTISIG
+```
+
+### How the multisig submits
+
+A multisig cannot run a Foundry script, so the scripts never assume they are the signer. Every mode
+simulates the call and prints the transaction the multisig has to submit — `to`, `value`, `data` — and
+`MODE=schedule` also writes it to `governance/ops/<id>.json` beside the execute and cancel transactions for
+the same operation. Paste it into the multisig's transaction builder, collect signatures, submit.
+
+Run with `--sender $MULTISIG` so the simulation passes the timelock's role check, and without
+`--broadcast`, since there is no key to broadcast with. `--broadcast` is for a rehearsal, or a 1-of-1 where
+Foundry holds the proposer key.
+
+Safe 1.4.1 is deployed on Robinhood Chain: `Safe` (`0x41675C099F32341bf84BFc5382aF534df5C7461a`), `SafeL2`
+(`0x29fcB43b46531BcA003ddC8FCB67FFE91900C762`) and `SafeProxyFactory`
+(`0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`) all have code at their canonical addresses. Whether the
+hosted Safe interface lists chain 4663 is a separate question; the Safe CLI and SDK work against the
+contracts directly.
+
+The operation files are the audit trail: every change the owner has made, in order, with what the chain
+says about each available from `MODE=status`. Commit them.
 
 | Action | Target | Call |
 |---|---|---|

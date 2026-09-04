@@ -10,3 +10,8 @@ contracts/broadcast/**/dry-run/
 # Generated per rehearsal by script/RehearsalFixture.s.sol; the addresses are whatever that run
 # deployed, so it is never the same twice and must not be committed.
 contracts/config/robinhood-rehearsal.json
+
+# Written and removed by test/GovernScript.t.sol; a failed run can leave them behind.
+contracts/governance/ops-test/
+contracts/config/_test-*.json
+contracts/config/baskets/_test-*.json

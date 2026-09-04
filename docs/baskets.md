@@ -161,13 +161,15 @@ The lowest capacity in the catalogue is $5,013, five times the largest expected 
 
 ```sh
 cd contracts
-export FACTORY=0x...
-BASKET=tech forge script script/CreateBasket.s.sol --rpc-url robinhood --account owner --broadcast
+export FACTORY=0x... TIMELOCK=0x... MULTISIG=0x...
+BASKETS=tech,ai MODE=schedule forge script script/CreateBasket.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit the printed transaction from the multisig; after the delay, MODE=execute OP=<id>
 ```
 
-Adding a basket means adding one file under `config/baskets/`. The script and the fork test both reject a
-recipe whose weights do not sum to 100%, breach a depth cap, fall below the 1% floor, or name a
-constituent with no Chainlink feed.
+Adding a basket means adding one file under `config/baskets/`. The factory belongs to the timelock, so
+creation is scheduled and executed after the delay, up to ten baskets per operation. The script and the fork
+test both reject a recipe whose weights do not sum to 100%, breach a depth cap, fall below the 1% floor, or
+name a constituent with no Chainlink feed.
 
 Depth snapshot 2026-09-04T06:16:20+00:00. It counts USDG
 v2/v3 pools and v4 PoolManager balances only, so it is a lower bound. Recompute before adding baskets.

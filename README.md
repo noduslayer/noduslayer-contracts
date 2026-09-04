@@ -93,16 +93,19 @@ forge script script/Deploy.s.sol --rpc-url robinhood --account deployer --broadc
 This also deploys a `TimelockController` and stages ownership of the registry, factory and zap to it.
 Ownership is two-step and the incoming owner is the timelock, so acceptance is itself a scheduled action —
 `script/TimelockAccept.s.sol` drives it. [`docs/runbook.md`](docs/runbook.md) has the full sequence and the
-checks to run afterwards. Then create baskets:
+checks to run afterwards. Creating baskets is a scheduled action too, since the factory belongs to the
+timelock:
 
 ```sh
-export FACTORY=0x...
-BASKET=tech forge script script/CreateBasket.s.sol --rpc-url robinhood --account owner --broadcast
+export FACTORY=0x... TIMELOCK=0x... MULTISIG=0x...
+BASKETS=tech,ai MODE=schedule forge script script/CreateBasket.s.sol --rpc-url robinhood --sender $MULTISIG
+# submit the printed transaction from the multisig; after the delay, MODE=execute OP=<id>
 ```
 
 Basket specs under `contracts/config/baskets/` declare target weights rather than raw units. The script
-reads live Chainlink prices at creation to derive units, and rejects a recipe whose weights breach a
-constituent's depth cap, fall below the 1% floor, fail to sum to 100%, or name a constituent with no feed.
+reads live Chainlink prices when it schedules to derive units, rejects a recipe whose weights breach a
+constituent's depth cap, fall below the 1% floor, fail to sum to 100%, or name a constituent with no feed,
+and pins the recipe in `governance/ops/<id>.json` so what executes after the delay is what was reviewed.
 
 ## Status
 

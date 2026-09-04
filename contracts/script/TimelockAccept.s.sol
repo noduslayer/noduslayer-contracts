@@ -1,52 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
+
+import {TimelockScript} from "./TimelockScript.sol";
 
 /// @notice Drives the timelock through accepting ownership of the registry, factory and zap.
 /// @dev Ownable2Step needs the incoming owner to call `acceptOwnership` itself, and the incoming owner is
-///      the timelock, so the call has to be scheduled and executed like any other governance action.
-///      Env: TIMELOCK, REGISTRY, FACTORY, ZAP; MODE (schedule | execute); optional SALT (0).
-///      Broadcast by an account holding PROPOSER_ROLE for schedule and EXECUTOR_ROLE for execute.
-contract TimelockAccept is Script {
-    function run() external {
-        TimelockController timelock = TimelockController(payable(vm.envAddress("TIMELOCK")));
-        bytes32 salt = bytes32(vm.envOr("SALT", uint256(0)));
-        string memory mode = vm.envString("MODE");
+///      the timelock, so the call has to be scheduled and executed like any other governance action. This
+///      is the first operation after deployment, and until it executes the deployer still owns everything.
+///      Env for schedule: TIMELOCK, REGISTRY, FACTORY, ZAP; optional LABEL. Other modes: see TimelockScript.
+contract TimelockAccept is TimelockScript {
+    function run() external returns (bytes32) {
+        TimelockController tl = _envTimelock();
+        if (!_mode("schedule")) return _stored(tl);
 
-        address[] memory targets = new address[](3);
-        targets[0] = vm.envAddress("REGISTRY");
-        targets[1] = vm.envAddress("FACTORY");
-        targets[2] = vm.envAddress("ZAP");
-
-        uint256[] memory values = new uint256[](3);
-        bytes[] memory payloads = new bytes[](3);
-        for (uint256 i; i < 3; ++i) {
-            payloads[i] = abi.encodeCall(Ownable2Step.acceptOwnership, ());
-        }
-
-        bytes32 id = timelock.hashOperationBatch(targets, values, payloads, bytes32(0), salt);
-
-        if (_is(mode, "schedule")) {
-            uint256 delay = timelock.getMinDelay();
-            vm.broadcast();
-            timelock.scheduleBatch(targets, values, payloads, bytes32(0), salt, delay);
-            console2.log("scheduled batch");
-            console2.logBytes32(id);
-            console2.log("executable after (seconds from now)", delay);
-        } else if (_is(mode, "execute")) {
-            require(timelock.isOperationReady(id), "operation not ready");
-            vm.broadcast();
-            timelock.executeBatch(targets, values, payloads, bytes32(0), salt);
-            console2.log("executed batch; timelock now owns registry, factory and zap");
-        } else {
-            revert("MODE must be schedule or execute");
-        }
+        Operation memory op =
+            _envOperation(_operation(vm.envAddress("REGISTRY"), vm.envAddress("FACTORY"), vm.envAddress("ZAP"), ""));
+        return schedule(tl, op);
     }
 
-    function _is(string memory a, string memory b) private pure returns (bool) {
-        return keccak256(bytes(a)) == keccak256(bytes(b));
+    /// @notice Schedules acceptance for the three owned contracts under one operation.
+    function scheduleAccept(TimelockController tl, address registry, address factory, address zap, string memory label)
+        public
+        returns (bytes32)
+    {
+        return schedule(tl, _operation(registry, factory, zap, label));
+    }
+
+    function _operation(address registry, address factory, address zap, string memory label)
+        private
+        pure
+        returns (Operation memory op)
+    {
+        op.targets = new address[](3);
+        op.targets[0] = registry;
+        op.targets[1] = factory;
+        op.targets[2] = zap;
+        op.values = new uint256[](3);
+        op.payloads = new bytes[](3);
+        for (uint256 i; i < 3; ++i) {
+            op.payloads[i] = abi.encodeCall(Ownable2Step.acceptOwnership, ());
+        }
+        op.label = bytes(label).length != 0 ? label : "accept ownership of registry, factory and zap";
     }
 }

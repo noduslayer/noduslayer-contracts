@@ -2,6 +2,8 @@
   "chainId": 4663,
   "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
   "weth": "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+  "stockBeacon": "0xe10b6f6b275de231345c20d14ab812db62151b00",
+  "stockBeaconImplementation": "0xb35490d6f9163DE4F80d88dc75c3516eb64C5aE2",
   "ethUsdFeed": "0x78F3556b67E17Df817D51Ef5a990cDaF09E8d3A9",
   "usdgUsdFeed": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
   "stockSymbols": [
