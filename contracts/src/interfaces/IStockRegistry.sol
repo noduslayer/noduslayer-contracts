@@ -21,4 +21,14 @@ interface IStockRegistry {
     function feedOf(address token) external view returns (address);
 
     function tokens() external view returns (address[] memory);
+
+    // --- governance surface ---
+
+    function list(address token, address feed) external;
+
+    function listMany(address[] calldata tokens_, address[] calldata feeds) external;
+
+    function delist(address token) external;
+
+    function setFeed(address token, address feed) external;
 }

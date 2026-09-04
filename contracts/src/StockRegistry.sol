@@ -33,10 +33,10 @@ contract StockRegistry is IStockRegistry, Ownable2Step {
     }
 
     /// @notice Lists a whole universe in one transaction. Pass `address(0)` as a feed to list without one.
-    function listMany(address[] calldata tokens, address[] calldata feeds) external onlyOwner {
-        if (tokens.length != feeds.length) revert LengthMismatch();
-        for (uint256 i; i < tokens.length; ++i) {
-            _list(tokens[i], feeds[i]);
+    function listMany(address[] calldata tokens_, address[] calldata feeds) external onlyOwner {
+        if (tokens_.length != feeds.length) revert LengthMismatch();
+        for (uint256 i; i < tokens_.length; ++i) {
+            _list(tokens_[i], feeds[i]);
         }
     }
 
