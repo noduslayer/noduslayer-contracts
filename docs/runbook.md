@@ -134,6 +134,10 @@ Watch, at minimum:
 - The scheduled `fork` CI job, which runs the mainnet fork suite daily and fails when the pinned config
   drifts from live state
 
+Start the quote service with `-nav-snapshot-file` on the day the first basket goes live. `BasketLens.nav`
+computes NAV from the feeds at call time and stores nothing, so unlike transaction history it cannot be
+reconstructed afterwards. A series that was never sampled is gone.
+
 ## Deployed addresses
 
 Record them in `docs/deployments.md` as they are created. An address that exists only in a terminal
