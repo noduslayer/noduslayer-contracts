@@ -613,7 +613,7 @@
     "maxDepthShareBps": 100,
     "minWeightBps": 100,
     "rule": "maxWeightBps = min(10000, depthUsd * maxDepthShareBps / targetTradeUsd)",
-    "note": "Dikalibrasi untuk tiket ritel: pembelian tipikal $100-1.000, targetTradeUsd memberi 5x headroom. Heuristik, bukan jaminan; kedalaman adalah batas bawah (pasangan WETH/saham-lain dan RFQ tidak terhitung). Verifikasi akhir lewat quote sungguhan."
+    "note": "Calibrated for retail tickets: typical purchase $100-1,000, so targetTradeUsd leaves 5x headroom. A heuristic, not a guarantee. Depth is a lower bound: it counts USDG v2/v3 pools and v4 PoolManager balances, and ignores WETH-paired pools and RFQ liquidity. Confirm with a live quote before relying on it."
   },
   "stockDepthUsd": [
     12332411,
@@ -1011,6 +1011,6 @@
     "totalAssets": 194,
     "withChainlinkFeed": 35,
     "withoutFeed": 159,
-    "note": "Seluruh semesta 194 token di-listing. Feed 0x0 berarti tidak ada harga on-chain: vault, zap dan factory tetap bekerja penuh, hanya BasketLens.nav yang revert untuk basket yang memuatnya."
+    "note": "The full universe of 194 published stock tokens is listed. A feed of 0x0 means no on-chain price: the vault, zap and factory still work, only BasketLens.nav reverts for a basket holding one."
   }
 }
