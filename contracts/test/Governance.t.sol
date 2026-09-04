@@ -12,7 +12,7 @@ import {BasketToken} from "../src/BasketToken.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
-import {IBasketZap} from "../src/interfaces/IBasketZap.sol";
+import {IRouteExecutor} from "../src/interfaces/IRouteExecutor.sol";
 import {MockAggregator} from "./mocks/MockAggregator.sol";
 import {MockStockToken} from "./mocks/MockStockToken.sol";
 
@@ -113,7 +113,7 @@ contract GovernanceTest is Test {
     function test_Timelock_AllowlistsARouterAfterDelay() public {
         _acceptOwnership();
         address router = makeAddr("router");
-        bytes memory call = abi.encodeCall(IBasketZap.setRouter, (router, true));
+        bytes memory call = abi.encodeCall(IRouteExecutor.setRouter, (router, true));
 
         vm.startPrank(multisig);
         timelock.schedule(address(zap), 0, call, bytes32(0), SALT, DELAY);

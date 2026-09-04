@@ -6,7 +6,9 @@ solc = "0.8.30"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 10_000
-fs_permissions = [{ access = "read", path = "./config" }]
+# Read for the chain configs the scripts consume; write is scoped to ./config so the rehearsal
+# fixture can record the addresses it deployed.
+fs_permissions = [{ access = "read-write", path = "./config" }]
 
 [profile.default.fuzz]
 runs = 512

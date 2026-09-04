@@ -12,7 +12,7 @@ import {BasketToken} from "../../src/BasketToken.sol";
 import {BasketZap} from "../../src/BasketZap.sol";
 import {StockRegistry} from "../../src/StockRegistry.sol";
 import {IBasketToken} from "../../src/interfaces/IBasketToken.sol";
-import {IBasketZap} from "../../src/interfaces/IBasketZap.sol";
+import {IRouteExecutor} from "../../src/interfaces/IRouteExecutor.sol";
 
 interface IV3SwapRouter {
     struct ExactInputSingleParams {
@@ -143,7 +143,7 @@ contract RobinhoodMainnetForkTest is Test {
         uint256 shares = 0.05e18;
         (uint256[] memory need,) = basket.previewMint(shares);
 
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](2);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](2);
         swaps[0] = _buy(nvda, need[0], 10e6);
         swaps[1] = _buy(aapl, need[1], 10e6);
 
@@ -166,7 +166,7 @@ contract RobinhoodMainnetForkTest is Test {
 
         uint256 shares = 0.5e18;
         (uint256[] memory out,) = basket.previewRedeem(shares);
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](2);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](2);
         swaps[0] = _sell(nvda, out[0]);
         swaps[1] = _sell(aapl, out[1]);
 
@@ -179,7 +179,7 @@ contract RobinhoodMainnetForkTest is Test {
         _assertZapEmpty();
     }
 
-    function _buy(address token, uint256 amountOut, uint256 maxIn) internal view returns (IBasketZap.Swap memory) {
+    function _buy(address token, uint256 amountOut, uint256 maxIn) internal view returns (IRouteExecutor.Swap memory) {
         IV3SwapRouter.ExactOutputSingleParams memory p = IV3SwapRouter.ExactOutputSingleParams({
             tokenIn: usdg,
             tokenOut: token,
@@ -189,7 +189,7 @@ contract RobinhoodMainnetForkTest is Test {
             amountInMaximum: maxIn,
             sqrtPriceLimitX96: 0
         });
-        return IBasketZap.Swap({
+        return IRouteExecutor.Swap({
             router: swapRouter02,
             sellToken: usdg,
             prefund: 0,
@@ -197,7 +197,7 @@ contract RobinhoodMainnetForkTest is Test {
         });
     }
 
-    function _sell(address token, uint256 amountIn) internal view returns (IBasketZap.Swap memory) {
+    function _sell(address token, uint256 amountIn) internal view returns (IRouteExecutor.Swap memory) {
         IV3SwapRouter.ExactInputSingleParams memory p = IV3SwapRouter.ExactInputSingleParams({
             tokenIn: token,
             tokenOut: usdg,
@@ -207,7 +207,7 @@ contract RobinhoodMainnetForkTest is Test {
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
         });
-        return IBasketZap.Swap({
+        return IRouteExecutor.Swap({
             router: swapRouter02,
             sellToken: token,
             prefund: 0,

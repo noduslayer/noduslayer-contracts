@@ -12,6 +12,7 @@ import {StockRegistry} from "../src/StockRegistry.sol";
 import {IBasketFactory} from "../src/interfaces/IBasketFactory.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
 import {IBasketZap} from "../src/interfaces/IBasketZap.sol";
+import {IRouteExecutor} from "../src/interfaces/IRouteExecutor.sol";
 import {MockAggregator} from "./mocks/MockAggregator.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockRouter} from "./mocks/MockRouter.sol";
@@ -133,10 +134,10 @@ contract BasketZapTest is Test {
 
     function test_RevertWhen_ZapMintRouterNotAllowed() public {
         MockRouter rogue = new MockRouter();
-        IBasketZap.Swap[] memory swaps = _mintSwaps(2e18, 1.5e18);
+        IRouteExecutor.Swap[] memory swaps = _mintSwaps(2e18, 1.5e18);
         swaps[0].router = address(rogue);
 
-        vm.expectRevert(abi.encodeWithSelector(IBasketZap.RouterNotAllowed.selector, address(rogue)));
+        vm.expectRevert(abi.encodeWithSelector(IRouteExecutor.RouterNotAllowed.selector, address(rogue)));
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, swaps, bob, block.timestamp);
     }
@@ -150,14 +151,14 @@ contract BasketZapTest is Test {
     }
 
     function test_RevertWhen_ZapMintExpired() public {
-        vm.expectRevert(IBasketZap.Expired.selector);
+        vm.expectRevert(IRouteExecutor.Expired.selector);
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, _mintSwaps(2e18, 1.5e18), bob, block.timestamp - 1);
     }
 
     function test_RevertWhen_ZapMintUnderbuysConstituent() public {
         vm.expectRevert(
-            abi.encodeWithSelector(IBasketZap.InsufficientConstituent.selector, address(nvda), 1.9e18, 2e18)
+            abi.encodeWithSelector(IRouteExecutor.InsufficientConstituent.selector, address(nvda), 1.9e18, 2e18)
         );
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, _mintSwaps(1.9e18, 1.5e18), bob, block.timestamp);
@@ -204,7 +205,7 @@ contract BasketZapTest is Test {
 
     function test_ZapRedeem_RefundsUnsoldConstituents() public {
         _seedShares();
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](1);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](1);
         swaps[0] = _sell(address(nvda), 0.999e18);
 
         vm.prank(alice);
@@ -237,7 +238,7 @@ contract BasketZapTest is Test {
 
     function test_SetRouter_UpdatesAllowlist() public {
         vm.expectEmit(address(zap));
-        emit IBasketZap.RouterUpdated(address(router), false);
+        emit IRouteExecutor.RouterUpdated(address(router), false);
 
         vm.prank(protocolOwner);
         zap.setRouter(address(router), false);
@@ -275,19 +276,19 @@ contract BasketZapTest is Test {
     // ---------------------------------------------------------------- remaining branches
 
     function test_RevertWhen_ZapMintZeroInput() public {
-        vm.expectRevert(IBasketZap.ZeroAmount.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAmount.selector);
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 0, 10e18, _mintSwaps(2e18, 1.5e18), bob, block.timestamp);
     }
 
     function test_RevertWhen_ZapMintZeroShares() public {
-        vm.expectRevert(IBasketZap.ZeroAmount.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAmount.selector);
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 1000e6, 0, _mintSwaps(2e18, 1.5e18), bob, block.timestamp);
     }
 
     function test_RevertWhen_ZapRedeemZeroShares() public {
-        vm.expectRevert(IBasketZap.ZeroAmount.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAmount.selector);
         vm.prank(alice);
         zap.zapRedeem(address(basket), 0, address(usdg), 0, _redeemSwaps(1, 1), bob, block.timestamp);
     }
@@ -295,20 +296,20 @@ contract BasketZapTest is Test {
     function test_RevertWhen_ZapRedeemToZeroAddress() public {
         _seedShares();
 
-        vm.expectRevert(IBasketZap.ZeroAddress.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
         vm.prank(alice);
         zap.zapRedeem(address(basket), 5e18, address(usdg), 0, _redeemSwaps(1, 1), address(0), block.timestamp);
     }
 
     function test_ZapMint_SupportsPrefundedRouters() public {
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](2);
-        swaps[0] = IBasketZap.Swap({
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](2);
+        swaps[0] = IRouteExecutor.Swap({
             router: address(router),
             sellToken: address(usdg),
             prefund: 460e6,
             data: abi.encodeCall(MockRouter.swapExactOutputPrefunded, (address(nvda), 2e18))
         });
-        swaps[1] = IBasketZap.Swap({
+        swaps[1] = IRouteExecutor.Swap({
             router: address(router),
             sellToken: address(usdg),
             prefund: 492e6,
@@ -344,32 +345,32 @@ contract BasketZapTest is Test {
     }
 
     function test_RevertWhen_SetTreasuryToZero() public {
-        vm.expectRevert(IBasketZap.ZeroAddress.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
         vm.prank(protocolOwner);
         zap.setTreasury(address(0));
     }
 
     function test_RevertWhen_SetRouterToZero() public {
-        vm.expectRevert(IBasketZap.ZeroAddress.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
         vm.prank(protocolOwner);
         zap.setRouter(address(0), true);
     }
 
     function test_RevertWhen_SweepToZero() public {
-        vm.expectRevert(IBasketZap.ZeroAddress.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
         vm.prank(protocolOwner);
         zap.sweep(address(usdg), address(0));
     }
 
     function test_RevertWhen_ConstructedWithoutFactory() public {
-        vm.expectRevert(IBasketZap.ZeroAddress.selector);
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
         new BasketZap(protocolOwner, IBasketFactory(address(0)), treasury, 20);
     }
 
     // ---------------------------------------------------------------- multi-leg execution
 
     function test_ZapMint_HandlesRepeatedLegsOnSameSellTokenAndRouter() public {
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](4);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](4);
         swaps[0] = _buy(address(nvda), 1e18);
         swaps[1] = _buy(address(nvda), 1e18);
         swaps[2] = _buy(address(aapl), 0.75e18);
@@ -385,7 +386,7 @@ contract BasketZapTest is Test {
 
     function test_ZapRedeem_HandlesInterleavedSellTokens() public {
         _seedShares();
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](4);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](4);
         swaps[0] = _sell(address(nvda), 0.5e18);
         swaps[1] = _sell(address(aapl), 0.3e18);
         swaps[2] = _sell(address(nvda), 0.499e18);
@@ -407,9 +408,9 @@ contract BasketZapTest is Test {
         vm.prank(protocolOwner);
         zap.setRouter(address(second), true);
 
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](2);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](2);
         swaps[0] = _buy(address(nvda), 2e18);
-        swaps[1] = IBasketZap.Swap({
+        swaps[1] = IRouteExecutor.Swap({
             router: address(second),
             sellToken: address(usdg),
             prefund: 0,
@@ -441,7 +442,7 @@ contract BasketZapTest is Test {
         vm.startPrank(attacker);
         basket.approve(address(zap), type(uint256).max);
         vm.expectRevert(abi.encodeWithSelector(IBasketZap.InsufficientOutput.selector, 0, 1));
-        zap.zapRedeem(address(basket), 1, address(usdg), 1, new IBasketZap.Swap[](0), attacker, block.timestamp);
+        zap.zapRedeem(address(basket), 1, address(usdg), 1, new IRouteExecutor.Swap[](0), attacker, block.timestamp);
         vm.stopPrank();
 
         assertEq(usdg.balanceOf(attacker), 0);
@@ -457,8 +458,10 @@ contract BasketZapTest is Test {
 
         vm.startPrank(attacker);
         usdg.approve(address(zap), type(uint256).max);
-        vm.expectRevert(abi.encodeWithSelector(IBasketZap.InsufficientConstituent.selector, address(nvda), 0, 20e18));
-        zap.zapMint(address(basket), address(usdg), 1, 100e18, new IBasketZap.Swap[](0), attacker, block.timestamp);
+        vm.expectRevert(
+            abi.encodeWithSelector(IRouteExecutor.InsufficientConstituent.selector, address(nvda), 0, 20e18)
+        );
+        zap.zapMint(address(basket), address(usdg), 1, 100e18, new IRouteExecutor.Swap[](0), attacker, block.timestamp);
         vm.stopPrank();
 
         assertEq(basket.balanceOf(attacker), 0);
@@ -522,20 +525,20 @@ contract BasketZapTest is Test {
         zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, _mintSwaps(2e18, 1.5e18), alice, block.timestamp);
     }
 
-    function _mintSwaps(uint256 nvdaOut, uint256 aaplOut) internal view returns (IBasketZap.Swap[] memory swaps) {
-        swaps = new IBasketZap.Swap[](2);
+    function _mintSwaps(uint256 nvdaOut, uint256 aaplOut) internal view returns (IRouteExecutor.Swap[] memory swaps) {
+        swaps = new IRouteExecutor.Swap[](2);
         swaps[0] = _buy(address(nvda), nvdaOut);
         swaps[1] = _buy(address(aapl), aaplOut);
     }
 
-    function _redeemSwaps(uint256 nvdaIn, uint256 aaplIn) internal view returns (IBasketZap.Swap[] memory swaps) {
-        swaps = new IBasketZap.Swap[](2);
+    function _redeemSwaps(uint256 nvdaIn, uint256 aaplIn) internal view returns (IRouteExecutor.Swap[] memory swaps) {
+        swaps = new IRouteExecutor.Swap[](2);
         swaps[0] = _sell(address(nvda), nvdaIn);
         swaps[1] = _sell(address(aapl), aaplIn);
     }
 
-    function _buy(address token, uint256 amountOut) internal view returns (IBasketZap.Swap memory) {
-        return IBasketZap.Swap({
+    function _buy(address token, uint256 amountOut) internal view returns (IRouteExecutor.Swap memory) {
+        return IRouteExecutor.Swap({
             router: address(router),
             sellToken: address(usdg),
             prefund: 0,
@@ -543,8 +546,8 @@ contract BasketZapTest is Test {
         });
     }
 
-    function _sell(address token, uint256 amountIn) internal view returns (IBasketZap.Swap memory) {
-        return IBasketZap.Swap({
+    function _sell(address token, uint256 amountIn) internal view returns (IRouteExecutor.Swap memory) {
+        return IRouteExecutor.Swap({
             router: address(router),
             sellToken: token,
             prefund: 0,

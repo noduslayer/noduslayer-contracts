@@ -10,7 +10,7 @@ import {BasketToken} from "../../src/BasketToken.sol";
 import {BasketZap} from "../../src/BasketZap.sol";
 import {StockRegistry} from "../../src/StockRegistry.sol";
 import {IBasketToken} from "../../src/interfaces/IBasketToken.sol";
-import {IBasketZap} from "../../src/interfaces/IBasketZap.sol";
+import {IRouteExecutor} from "../../src/interfaces/IRouteExecutor.sol";
 
 interface IV3SwapRouter {
     struct ExactOutputSingleParams {
@@ -92,9 +92,9 @@ contract RetailEconomicsForkTest is Test {
         uint256 shares = 9.5e18;
         (uint256[] memory need,) = basket.previewMint(shares);
 
-        IBasketZap.Swap[] memory swaps = new IBasketZap.Swap[](want.length);
+        IRouteExecutor.Swap[] memory swaps = new IRouteExecutor.Swap[](want.length);
         for (uint256 i; i < want.length; ++i) {
-            swaps[i] = IBasketZap.Swap({
+            swaps[i] = IRouteExecutor.Swap({
                 router: router,
                 sellToken: usdg,
                 prefund: 0,

@@ -6,3 +6,7 @@ node_modules/
 contracts/out/
 contracts/cache/
 contracts/broadcast/**/dry-run/
+
+# Generated per rehearsal by script/RehearsalFixture.s.sol; the addresses are whatever that run
+# deployed, so it is never the same twice and must not be committed.
+contracts/config/robinhood-rehearsal.json
