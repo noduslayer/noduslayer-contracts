@@ -1,6 +1,6 @@
 # Constituent universe
 
-Snapshot 2026-09-04T09:47:27+00:00, chain 4663. **194 stock and ETF tokens, all `ASSET_STATUS_ACTIVE`.**
+Depth snapshot 2026-09-04T06:16:20+00:00, chain 4663. **194 stock and ETF tokens, all `ASSET_STATUS_ACTIVE`.**
 
 Sources: [`api.robinhood.com/rhj/assets`](https://docs.robinhood.com/chain/stock-token-apis) for the on-chain
 asset registry, `/rhj/prices` for bid, ask and volume, and the
@@ -15,8 +15,8 @@ v2/v3 pool. It is a lower bound, since WETH-paired pools and RFQ liquidity are n
 | Stock tokens registered | **194** |
 | With a Chainlink feed | **35** |
 | Without a feed | 159 |
-| Max weight at or above 1% | 35 |
-| Total on-chain depth | $83,694,136 |
+| Depth supports a 1% weight | 192 |
+| Total on-chain depth | $83,694,129 |
 | Total 24h RFQ volume | $2,622,644,204 |
 | Trading halted | SOUN |
 

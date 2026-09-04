@@ -12,7 +12,7 @@ Specs declare **target weights**, not raw units. Units are derived from Chainlin
 spec cannot ship a mispriced recipe.
 
 - **Capacity** is the largest single purchase before any constituent absorbs more than 1% of its
-  depth: `min(depth_i x 1% / weight_i)`. The shallowest constituent sets it.
+  depth: `min(depth_i x 1% / weight_i)`. The constituent with the lowest depth-to-weight ratio sets it, which is not always the shallowest one.
 - **Gas** estimates a steady-state `zapMint` at roughly $0.34 plus $0.22 per constituent.
 
 ## Core and broad market
@@ -169,5 +169,5 @@ Adding a basket means adding one file under `config/baskets/`. The script and th
 recipe whose weights do not sum to 100%, breach a depth cap, fall below the 1% floor, or name a
 constituent with no Chainlink feed.
 
-Depth snapshot 2026-09-04T09:46:22+00:00. It counts USDG
+Depth snapshot 2026-09-04T06:16:20+00:00. It counts USDG
 v2/v3 pools and v4 PoolManager balances only, so it is a lower bound. Recompute before adding baskets.

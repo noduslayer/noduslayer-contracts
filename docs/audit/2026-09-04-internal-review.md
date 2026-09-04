@@ -18,9 +18,10 @@ and every accepted risk is written down.
    surface, denial of service, token quirks (fee-on-transfer, rebasing, pausable, block-lists),
    upgradeability of dependencies.
 2. Static analysis: Slither 0.11.5 (101 detectors), Aderyn 0.6.8, `forge lint`.
-3. Tests: 94 unit tests including fuzzing of the backing invariant (512 runs), 100 % line /
-   statement / branch / function coverage of `src/`, and 5 fork tests against mainnet 4663 using
-   the real NVDA and AAPL tokens, the real Chainlink feeds and the real Uniswap v3 SwapRouter02.
+3. Tests: 124 unit tests including fuzzing of the backing invariant (512 runs), effectively full coverage
+   of `src/`, and 10 fork tests across four files against mainnet 4663 — covering in-kind mint and redeem
+   with real tokens, zap routing through the real Uniswap v3 SwapRouter02, retail gas cost, listing the
+   full 194-token universe, and deploying the entire 60-basket catalogue against live Chainlink prices.
 4. On-chain reconnaissance of the dependencies the design relies on (token proxy layout, issuer
    powers, feed parameters, router deployments).
 
@@ -141,7 +142,7 @@ point; listing anything else would let `mint` under-collateralise.
 
 ## Evidence
 
-- `forge test`: 94 passed, 0 failed (5 suites); fuzz 512 runs.
+- `forge test`: 124 passed, 0 failed (6 unit suites); fuzz 512 runs.
 - `forge coverage`: 100 % lines, statements, branches and functions for every file in `src/`.
 - Mainnet fork (`FORK_TESTS=true`, block ≈ 54.0 M, 2026-09-04):
   canonical token names verified; in-kind mint/redeem with real NVDA/AAPL;

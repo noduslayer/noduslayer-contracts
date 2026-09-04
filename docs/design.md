@@ -142,9 +142,20 @@ The cliff is real but only bites far above retail size: measured on the live USD
 executes 0.30% over oracle while $20,000 executes 37.68% over. At $250 and $1,000 price impact is
 immeasurable — NVDA quotes +0.01% at both.
 
-Depth here is v4 PoolManager balances plus all USDG v2/v3 pools: a lower bound that ignores WETH-paired
-pools and RFQ liquidity. Several tokens (ORCL, CRWV, CLSK, RGTI, IONQ, NBIS) trade $10-25M a day via RFQ on
-almost no AMM depth, so their caps understate what a router with RFQ access could support.
+Depth here is v4 PoolManager balances plus all USDG v2/v3 pools. That figure is wrong in both directions
+and should be replaced by quote-derived capacity once the quoter covers v4.
+
+It understates on one side: WETH-paired pools and RFQ liquidity are not counted at all, and several tokens
+(ORCL, CRWV, CLSK, RGTI, IONQ, NBIS) trade $10-25M a day via RFQ on almost no AMM depth, so their caps are
+far tighter than a quoter with RFQ access would need.
+
+It overstates on the other, and an earlier version of this document had that backwards. The v4 PoolManager
+is a singleton whose balance is spread across every pool it holds, and on this chain that is a very large
+number of mostly worthless pools: NVDA alone has over 10,000 v4 pools, of which 224 pair against USDG and
+only 45 carry no hook, with fee tiers running up to 99% and the dynamic-fee flag. Attributing the whole
+singleton balance to reachable depth credits a constituent with liquidity no trade can touch. Quoting v4
+safely needs a persistent `Initialize` indexer and a hook allow-list, which `services/quoter` does not yet
+have; until then its numbers cover v2 and v3 only.
 
 `config/baskets/*.json` declares **target weights**, not raw units. `script/CreateBasket.s.sol` reads live
 Chainlink prices at creation, derives `units`, and rejects any recipe whose weights breach a cap, fall below
