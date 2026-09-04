@@ -175,14 +175,29 @@ no on-chain defence. Monitor the beacon for `Upgraded`, and disclose.
 
 ## Monitoring
 
-Watch, at minimum:
+`cmd/watch` in the quote service repository implements this section. Run it from the day the first basket
+exists, pointed at a webhook somebody reads; `docs/deploy.md` there covers running it. Every minute it
+checks:
 
-- `Upgraded` on the stock-token beacon, and `Paused` on any listed constituent
-- Chainlink `updatedAt` per listed feed, alerting past the 24h heartbeat plus a margin
-- `Swept` on the zap, which should be rare and always explainable
-- `CallScheduled` and `Cancelled` on the timelock, so a scheduled change is never a surprise
-- The scheduled `fork` CI job, which runs the mainnet fork suite daily and fails when the pinned config
-  drifts from live state
+- **Backing.** For every basket and constituent, `balance * 1e18 >= totalSupply * units + totalClaimable
+  * 1e18`, the invariant `BasketToken` documents. A shortfall is critical: the vault owes more than it
+  holds. Nothing in the protocol can cause one, so it would mean the issuer burned from a vault or the
+  token's logic changed underneath it.
+- **The stock-token beacon.** `implementation()` against `stockBeaconImplementation` in the config, and
+  `Upgraded` events. The beacon on chain 4663 has been upgraded twice already; this is not hypothetical.
+- **Pause switches.** `paused()` on every listed token and on the zap.
+- **Feeds.** A feed that lags the freshest listed feed by more than 26 hours, or has not printed for four
+  days. Lag against the freshest feed is what tells a dead feed from a closed market, since feeds go quiet
+  together over a weekend.
+- **Governance.** `CallScheduled`, `CallExecuted`, `Cancelled` and `MinDelayChange` on the timelock, and
+  `OwnershipTransferStarted` / `OwnershipTransferred` on the registry, factory and zap. A scheduled
+  operation nobody on the team scheduled means the proposer key is not only yours.
+- **Sweeps.** `Swept` on the zap, which should be rare and always explainable.
+- **The node.** Three consecutive failed polls.
+
+A condition is reported when it appears, again every six hours while it persists, and once when it clears.
+`/status` on the watcher lists what is active now. Also watch the scheduled `fork` CI job, which runs the
+mainnet fork suite daily and fails when the pinned config drifts from live state.
 
 Start the quote service with `-nav-snapshot-file` on the day the first basket goes live. `BasketLens.nav`
 computes NAV from the feeds at call time and stores nothing, so unlike transaction history it cannot be
