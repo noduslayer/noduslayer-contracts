@@ -1,0 +1,176 @@
+# NodusLayer — Basket Protocol Design (v1)
+
+Fully collateralised index baskets of Robinhood Chain stock tokens, with a single-transaction
+zap that buys or sells the constituents through allow-listed routers. Robinhood Chain mainnet,
+chain id 4663.
+
+## Goals and non-goals
+
+**Goals**
+
+- Let a user hold a diversified basket of stock tokens as one ERC-20 that is always redeemable,
+  in kind, for exactly what backs it.
+- Make entry and exit one transaction at the best available execution, with routing decided
+  off-chain and enforced on-chain (allow-list, exact output, minimum output, deadline).
+- Keep the trust-minimised core small enough to audit in a day and impossible to pause.
+
+**Non-goals for v1**
+
+- On-chain rebalancing. Baskets are static recipes; a new weighting ships as a new basket plus
+  a migration zap.
+- A native protocol token. Fees accrue in basket shares and the zap's input/output token.
+- Custodying anything between transactions. The zap refunds every leftover.
+
+## Components
+
+```
+                      off-chain Quote Service (routes, splits, oracle sanity, calldata)
+                                            │
+   user ──USDG/any token──►  BasketZap  ────┼──► allow-listed routers (Uniswap SwapRouter02,
+             ◄── shares ──   (Pausable)     │    UniversalRouter, 1inch, 0x …)
+                                │ mint / redeem in kind
+                                ▼
+                          BasketToken (vault, immutable recipe, never pausable)
+                                ▲
+              BasketFactory ────┘ deploys, validates constituents against
+                    │             StockRegistry, records official baskets
+              StockRegistry ─── canonical stock-token addresses + Chainlink feeds
+              BasketLens ────── read-only NAV / per-constituent quotes
+```
+
+| Contract | Owner | Mutable state after deployment |
+|---|---|---|
+| `StockRegistry` | protocol multisig (2-step) | listed set, feed per token |
+| `BasketFactory` | protocol multisig | treasury, basket registry |
+| `BasketToken` | none — fee params governed by `factory.owner()` | fees within 1% cap, claims ledger |
+| `BasketZap` | protocol multisig | router allow-list, fee ≤ 0.5%, treasury, paused flag |
+| `BasketLens` | none | none |
+
+## Recipe and units
+
+A basket is `Constituent[] {token, units}` fixed at construction, 2–16 entries, unique tokens,
+all listed in the registry at creation time. `units` is the constituent's base-unit amount that
+backs `1e18` shares. Stock tokens are 18-decimal ERC-20s implementing ERC-8056: corporate actions
+update `uiMultiplier()` instead of rebasing balances, so raw units are a total-return unit and a
+recipe stays valid across splits and dividends without any vault logic.
+
+## Mint and redeem
+
+- `mint(shares, to)` pulls `ceil(shares · units_i / 1e18)` of each constituent from the caller,
+  mints `shares − fee` to `to` and `fee` to the fee recipient. Fees are settled in shares so they
+  stay backed.
+- `redeem(shares, to)` moves `fee` shares to the fee recipient, burns the rest and pays
+  `floor(net · units_i / 1e18)` of each constituent. It has no pause switch and touches no
+  oracle or router.
+- `redeemWithSkip(shares, to, skipMask)` is the escape hatch for a constituent the issuer has
+  paused or block-listed: skipped legs are credited to `claimable[to][token]` instead of
+  transferred, and collected later with `claim(token, to)`. All ledger writes happen before any
+  token leaves the vault.
+
+**Backing invariant**, checked by fuzz tests for every constituent `i`:
+
+```
+balance_i · 1e18  ≥  totalSupply · units_i  +  totalClaimable_i · 1e18
+```
+
+Rounding is always in the vault's favour; dust accumulates in the vault and is never claimable.
+
+## Zap
+
+`zapMint(basket, tokenIn, amountIn, shares, swaps[], to, deadline)`:
+
+1. Pull `amountIn`, send the zap fee to the treasury.
+2. Execute each `Swap {router, sellToken, prefund, data}`: router must be allow-listed;
+   `sellToken` is approved for the duration of the call (and optionally pre-transferred for
+   routers that settle from their own balance, e.g. UniversalRouter v4 actions); approval is
+   reset to zero afterwards.
+3. Require the zap now holds at least `previewMint(shares)` of every constituent, approve the
+   exact amounts, mint to `to`.
+4. Refund every remaining constituent and `tokenIn` to the caller.
+
+`zapRedeem(basket, shares, tokenOut, minAmountOut, swaps[], to, deadline)` mirrors it: pull
+shares, redeem in kind to the zap, execute legs, take the fee from `tokenOut`, require
+`amountOut ≥ minAmountOut`, pay `to`, refund unsold constituents.
+
+The zap only ever holds a caller's in-flight funds inside their own transaction, so malformed
+routes can only cost their author. `sweep` exists for dust a route leaves behind.
+
+## Routing (off-chain, phase 2 service)
+
+The Quote Service owns the graph of pools (Uniswap v2/v3/v4 + Rialto), quotes every candidate
+route at the real trade size (Quoter contracts and RFQ APIs), tries splits, prices gas into the
+objective, sanity-bounds the result with Chainlink, and encodes `Swap[]` calldata. The UI shows
+one price from "our routing engine"; venue attribution lives in logs and documentation. Stock
+feeds update 24/5, so the service must widen tolerances outside US market hours rather than
+trust a stale feed against a 24/7 AMM.
+
+## Constituent eligibility and weight caps
+
+Every one of the 194 published Robinhood stock tokens is listed. `StockRegistry` requires only that a token
+is a contract exposing `decimals()`; a Chainlink feed is optional and 159 of the 194 are listed with
+`address(0)`.
+
+That is sound because pricing is not on the critical path. `BasketToken` and `BasketZap` contain no oracle
+reference at all: minting and redeeming move exact recipe amounts, and a zap is bounded by the caller's
+`amountIn`, the per-constituent `InsufficientConstituent` check and `minAmountOut`. Only `BasketLens` reads a
+feed. So a feed-less constituent costs on-chain NAV, not safety:
+
+| Surface | Feed-less constituent |
+|---|---|
+| `mint` / `redeem` / `claim` | works |
+| `zapMint` / `zapRedeem` | works |
+| `createBasket` | works |
+| `BasketLens.quotes` | returns the entry with `priced == false` |
+| `BasketLens.nav` | reverts `NoFeed(token)` — never a partial sum |
+| `script/CreateBasket.s.sol` | refuses, because it derives units from the feed |
+
+`unpricedCount(basket)` reports how many constituents lack a price so a UI can label a basket rather than
+discover the revert. Off-chain, `api.robinhood.com/rhj/prices` quotes all 194, so a front end can show value
+for any basket; what a feed-less basket loses is *verifiable* on-chain NAV and composability with other
+protocols.
+
+Depth is not a gate either. It sets a per-token weight ceiling:
+
+```
+maxWeight_i = min(100%, depth_i x maxDepthShare / targetTrade)      (default: 1% and $5,000)
+capacity    = min over i ( depth_i x maxDepthShare / weight_i )
+```
+
+`targetTradeUsd` is $5,000 — five times the largest realistic retail ticket. A basket's capacity is set by
+its shallowest constituent, because a fixed recipe forces every purchase to buy `weight_i` of each token.
+The cliff is real but only bites far above retail size: measured on the live USDG v3 pool, a $5,000 ASML buy
+executes 0.30% over oracle while $20,000 executes 37.68% over. At $250 and $1,000 price impact is
+immeasurable — NVDA quotes +0.01% at both.
+
+Depth here is v4 PoolManager balances plus all USDG v2/v3 pools: a lower bound that ignores WETH-paired
+pools and RFQ liquidity. Several tokens (ORCL, CRWV, CLSK, RGTI, IONQ, NBIS) trade $10-25M a day via RFQ on
+almost no AMM depth, so their caps understate what a router with RFQ access could support.
+
+`config/baskets/*.json` declares **target weights**, not raw units. `script/CreateBasket.s.sol` reads live
+Chainlink prices at creation, derives `units`, and rejects any recipe whose weights breach a cap, fall below
+the 1% floor, fail to sum to 100%, or name a constituent with no feed.
+
+## Fees
+
+| Fee | Where | Cap | Default |
+|---|---|---|---|
+| mint | shares minted to fee recipient | 1.00% | 0.10% |
+| redeem | shares transferred to fee recipient | 1.00% | 0.10% |
+| zap | input token (mint) / output token (redeem) to treasury | 0.50% | 0.20% |
+
+## Versioning (option C)
+
+A rebalance is a new `BasketToken` with a new recipe. A migration zap (phase 2) redeems v1 in
+kind, trades only the difference between recipes, and mints v2 in one transaction. Holders who do
+not migrate keep a fully backed v1.
+
+## Chain facts relied upon
+
+- Stock tokens: 18 decimals, freely transferable to contracts, `BeaconProxy` behind a shared
+  beacon; issuer can `pause`, block-list (`isBlocked`), `mint` and `burn(address,uint256)`.
+- USDG has 6 decimals; WETH 18.
+- Chainlink feeds: 8 decimals, 24h heartbeat, 0.5% deviation, `us_equities_24/5`.
+- Uniswap deployments per `Uniswap/contracts/deployments/4663.md`; SwapRouter02 pulls via
+  `transferFrom`, UniversalRouter v4 settles via Permit2 or router balance (`prefund`).
+
+See `docs/audit/2026-09-04-internal-review.md` for the threat model and review findings.
