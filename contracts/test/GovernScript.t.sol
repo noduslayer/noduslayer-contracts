@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 
 import {BasketFactory} from "../src/BasketFactory.sol";
+import {BasketMigrator} from "../src/BasketMigrator.sol";
 import {BasketToken} from "../src/BasketToken.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
@@ -185,13 +186,15 @@ contract GovernScriptTest is Test {
         StockRegistry r = new StockRegistry(address(this));
         BasketFactory f = new BasketFactory(address(this), r, treasury);
         BasketZap z = new BasketZap(address(this), f, treasury, 20);
+        BasketMigrator m = new BasketMigrator(address(this), f);
         r.transferOwnership(address(timelock));
         f.transferOwnership(address(timelock));
         z.transferOwnership(address(timelock));
+        m.transferOwnership(address(timelock));
 
         TimelockAccept s = new TimelockAccept();
         s.setOpsDir(OPS_DIR);
-        bytes32 id = s.scheduleAccept(timelock, address(r), address(f), address(z), "");
+        bytes32 id = s.scheduleAccept(timelock, address(r), address(f), address(z), address(m), "");
         assertEq(r.owner(), address(this), "still the deployer's until executed");
 
         skip(DELAY);
@@ -200,6 +203,7 @@ contract GovernScriptTest is Test {
         assertEq(r.owner(), address(timelock));
         assertEq(f.owner(), address(timelock));
         assertEq(z.owner(), address(timelock));
+        assertEq(m.owner(), address(timelock));
         vm.removeFile(s.opPath(id));
     }
 
@@ -285,10 +289,13 @@ contract GovernScriptTest is Test {
         f.transferOwnership(address(timelock));
         BasketZap z = new BasketZap(address(this), f, treasury, 20);
         z.transferOwnership(address(timelock));
+        BasketMigrator m = new BasketMigrator(address(this), f);
+        m.transferOwnership(address(timelock));
         vm.setEnv("LABEL", "");
         vm.setEnv("REGISTRY", vm.toString(address(r)));
         vm.setEnv("FACTORY", vm.toString(address(f)));
         vm.setEnv("ZAP", vm.toString(address(z)));
+        vm.setEnv("MIGRATOR", vm.toString(address(m)));
         bytes32 accept = new TimelockAccept().run();
 
         // CreateBasket: schedule from BASKETS/FACTORY/CONFIG with a label from the environment.

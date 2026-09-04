@@ -6,10 +6,12 @@ import {TimelockController} from "@openzeppelin/contracts/governance/TimelockCon
 
 import {BasketFactory} from "../src/BasketFactory.sol";
 import {BasketLens} from "../src/BasketLens.sol";
+import {BasketMigrator} from "../src/BasketMigrator.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
 
-/// @notice Deploys the protocol from config/<CONFIG>.json behind a timelock.
+/// @notice Deploys the protocol from config/<CONFIG>.json behind a timelock: registry, factory, zap,
+///         migrator and lens.
 /// @dev Env: MULTISIG (proposer and executor on the timelock), TREASURY (fee recipient).
 ///      Optional: CONFIG (robinhood-mainnet), ZAP_FEE_BPS (20), TIMELOCK_MIN_DELAY (172800),
 ///      TIMELOCK (reuse an existing controller instead of deploying one), LIST_CHUNK (50).
@@ -20,6 +22,7 @@ contract Deploy is Script {
         address registry;
         address factory;
         address zap;
+        address migrator;
         address lens;
     }
 
@@ -45,19 +48,16 @@ contract Deploy is Script {
         _listInChunks(registry, tokens, feeds);
 
         BasketFactory factory = new BasketFactory(deployer, registry, treasury);
-        BasketZap zap = new BasketZap(deployer, factory, treasury, uint16(vm.envOr("ZAP_FEE_BPS", uint256(20))));
-        for (uint256 i; i < routers.length; ++i) {
-            zap.setRouter(routers[i], true);
-        }
+        (d.zap, d.migrator) = _routing(deployer, factory, treasury, routers);
 
         d.registry = address(registry);
         d.factory = address(factory);
-        d.zap = address(zap);
         d.lens = address(new BasketLens(registry));
 
         registry.transferOwnership(d.timelock);
         factory.transferOwnership(d.timelock);
-        zap.transferOwnership(d.timelock);
+        BasketZap(d.zap).transferOwnership(d.timelock);
+        BasketMigrator(d.migrator).transferOwnership(d.timelock);
         vm.stopBroadcast();
 
         _report(d, multisig, treasury, tokens.length);
@@ -76,6 +76,21 @@ contract Deploy is Script {
 
         uint256 delay = vm.envOr("TIMELOCK_MIN_DELAY", uint256(2 days));
         return address(new TimelockController(delay, proposers, executors, address(0)));
+    }
+
+    /// @dev The zap and the migrator start with the same router allow-list. Afterwards each list is governed
+    ///      on its own, deliberately: the migrator's routers are a separate lever in the runbook.
+    function _routing(address deployer, BasketFactory factory, address treasury, address[] memory routers)
+        private
+        returns (address zap, address migrator)
+    {
+        BasketZap z = new BasketZap(deployer, factory, treasury, uint16(vm.envOr("ZAP_FEE_BPS", uint256(20))));
+        BasketMigrator m = new BasketMigrator(deployer, factory);
+        for (uint256 i; i < routers.length; ++i) {
+            z.setRouter(routers[i], true);
+            m.setRouter(routers[i], true);
+        }
+        return (address(z), address(m));
     }
 
     /// @dev Lists the universe in bounded chunks so one oversized calldata blob cannot brick the deploy.
@@ -99,6 +114,7 @@ contract Deploy is Script {
         console2.log("StockRegistry     ", d.registry);
         console2.log("BasketFactory     ", d.factory);
         console2.log("BasketZap         ", d.zap);
+        console2.log("BasketMigrator    ", d.migrator);
         console2.log("BasketLens        ", d.lens);
         console2.log("multisig          ", multisig);
         console2.log("treasury          ", treasury);

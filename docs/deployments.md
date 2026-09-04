@@ -11,6 +11,7 @@ depends on it.
 | StockRegistry | — | — | — |
 | BasketFactory | — | — | — |
 | BasketZap | — | — | — |
+| BasketMigrator | — | — | — |
 | BasketLens | — | — | — |
 
 | Parameter | Value |
@@ -28,6 +29,7 @@ depends on it.
 | StockRegistry | — | — | — |
 | BasketFactory | — | — | — |
 | BasketZap | — | — | — |
+| BasketMigrator | — | — | — |
 | BasketLens | — | — | — |
 
 The testnet config is not written yet: `contracts/config/` holds only `robinhood-mainnet.json`. Testnet
@@ -43,14 +45,13 @@ from testnet state before `CONFIG=robinhood-testnet` will work.
 ## Verifying a deployment
 
 ```sh
-export REGISTRY=0x... FACTORY=0x... ZAP=0x... TIMELOCK=0x...
+export REGISTRY=0x... FACTORY=0x... ZAP=0x... MIGRATOR=0x... TIMELOCK=0x...
 
 # ownership sits with the timelock, not the deployer
-for c in $REGISTRY $FACTORY $ZAP; do cast call $c "owner()(address)" --rpc-url robinhood; done
+for c in $REGISTRY $FACTORY $ZAP $MIGRATOR; do cast call $c "owner()(address)" --rpc-url robinhood; done
 
-# the zap points at the factory it was deployed against, and is not paused
-cast call $ZAP "factory()(address)" --rpc-url robinhood
-cast call $ZAP "paused()(bool)" --rpc-url robinhood
+# the zap and the migrator point at the factory they were deployed against, and neither is paused
+for c in $ZAP $MIGRATOR; do cast call $c "factory()(address)" --rpc-url robinhood; cast call $c "paused()(bool)" --rpc-url robinhood; done
 
 # the registry lists what the config says it should
 cast call $REGISTRY "tokens()(address[])" --rpc-url robinhood | tr ',' '\n' | wc -l

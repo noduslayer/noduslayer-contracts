@@ -7,6 +7,7 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 import {BasketFactory} from "../src/BasketFactory.sol";
 import {BasketLens} from "../src/BasketLens.sol";
+import {BasketMigrator} from "../src/BasketMigrator.sol";
 import {BasketToken} from "../src/BasketToken.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
@@ -25,6 +26,7 @@ contract RehearsalTest is Test {
     StockRegistry internal registry;
     BasketFactory internal factory;
     BasketZap internal zap;
+    BasketMigrator internal migrator;
     BasketLens internal lens;
 
     RehearsalToken[6] internal tokens;
@@ -54,7 +56,9 @@ contract RehearsalTest is Test {
         assertEq(registry.owner(), address(timelock));
         assertEq(factory.owner(), address(timelock));
         assertEq(zap.owner(), address(timelock));
+        assertEq(migrator.owner(), address(timelock));
         assertFalse(zap.paused());
+        assertFalse(migrator.paused());
 
         // Step 2: every constituent is listed and priceable.
         assertEq(registry.tokens().length, tokens.length);
@@ -126,11 +130,13 @@ contract RehearsalTest is Test {
 
         factory = new BasketFactory(deployer, registry, treasury);
         zap = new BasketZap(deployer, factory, treasury, 20);
+        migrator = new BasketMigrator(deployer, factory);
         lens = new BasketLens(registry);
 
         registry.transferOwnership(address(timelock));
         factory.transferOwnership(address(timelock));
         zap.transferOwnership(address(timelock));
+        migrator.transferOwnership(address(timelock));
         vm.stopPrank();
     }
 
@@ -200,14 +206,15 @@ contract RehearsalTest is Test {
         view
         returns (address[] memory targets, uint256[] memory values, bytes[] memory payloads)
     {
-        targets = new address[](3);
+        targets = new address[](4);
         targets[0] = address(registry);
         targets[1] = address(factory);
         targets[2] = address(zap);
+        targets[3] = address(migrator);
 
-        values = new uint256[](3);
-        payloads = new bytes[](3);
-        for (uint256 i; i < 3; ++i) {
+        values = new uint256[](4);
+        payloads = new bytes[](4);
+        for (uint256 i; i < 4; ++i) {
             payloads[i] = abi.encodeCall(Ownable2Step.acceptOwnership, ());
         }
     }

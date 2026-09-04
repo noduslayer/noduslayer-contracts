@@ -31,16 +31,17 @@ forge script script/Deploy.s.sol --rpc-url robinhood --account deployer --broadc
   --verify --verifier blockscout --verifier-url https://robinhoodchain.blockscout.com/api
 ```
 
-This deploys the timelock, registry, factory, zap and lens, lists all 194 stock tokens in chunks,
-allow-lists the routers from the config, and transfers ownership of the registry, factory and zap to the
-timelock. Record every printed address in `docs/deployments.md` before continuing.
+This deploys the timelock, registry, factory, zap, migrator and lens, lists all 194 stock tokens in chunks,
+allow-lists the routers from the config on both the zap and the migrator, and transfers ownership of the
+registry, factory, zap and migrator to the timelock. Record every printed address in `docs/deployments.md`
+before continuing.
 
 Ownership is staged, not final. `Ownable2Step` requires the incoming owner to accept, and the incoming owner
 is the timelock, so acceptance is itself a governance action — the first one, and it takes the same path as
 every later one. "Governance" below explains how the multisig submits what the scripts produce.
 
 ```sh
-export TIMELOCK=0x... REGISTRY=0x... FACTORY=0x... ZAP=0x... MULTISIG=0x...
+export TIMELOCK=0x... REGISTRY=0x... FACTORY=0x... ZAP=0x... MIGRATOR=0x... MULTISIG=0x...
 
 MODE=schedule forge script script/TimelockAccept.s.sol --rpc-url robinhood --sender $MULTISIG
 # submit the printed scheduleTx from the multisig, wait TIMELOCK_MIN_DELAY, then
@@ -54,7 +55,9 @@ Verify before going further:
 cast call $REGISTRY "owner()(address)" --rpc-url robinhood   # must equal $TIMELOCK
 cast call $FACTORY  "owner()(address)" --rpc-url robinhood
 cast call $ZAP      "owner()(address)" --rpc-url robinhood
+cast call $MIGRATOR "owner()(address)" --rpc-url robinhood
 cast call $ZAP      "paused()(bool)"   --rpc-url robinhood   # false
+cast call $MIGRATOR "paused()(bool)"   --rpc-url robinhood   # false
 ```
 
 Until the timelock has accepted, the deployer is still owner. Do not create baskets or announce the
