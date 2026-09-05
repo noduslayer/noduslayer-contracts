@@ -39,17 +39,25 @@ jobs:
       - name: coverage floor
         run: forge coverage --report summary --no-match-coverage '(script|test)/' --no-match-path 'test/fork/*' | tee /dev/stderr | ./script/coverage-floor.sh 97
 
-      - uses: crytic/slither-action@v0.4.1
-        with:
-          target: contracts/
-          slither-config: contracts/slither.config.json
-          fail-on: medium
-
       # Consumers pin themselves to abi/, so a signature change that is not exported is a broken contract
       # with the outside world.
       - run: ./abi/export.sh && ./config/build-catalogue.sh
       - name: published artifacts are up to date
         run: git diff --exit-code -- abi/ config/catalogue.json
+
+  # Its own job: the action builds inside a container as root, and a root-owned out/ would stop the test
+  # job's later forge invocations from writing artifacts.
+  slither:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: crytic/slither-action@v0.4.1
+        with:
+          target: contracts/
+          slither-config: contracts/slither.config.json
+          fail-on: medium
 
   # Config pins live mainnet addresses, feeds and measured pool depth, so it rots as the chain moves.
   # This runs against real state to catch that drift rather than discovering it at deploy time.
