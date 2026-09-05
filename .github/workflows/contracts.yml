@@ -25,7 +25,7 @@ jobs:
           submodules: recursive
       - uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.5.1
       - run: forge fmt --check src test script
       - run: forge lint
       - run: forge build --sizes
@@ -62,7 +62,7 @@ jobs:
           submodules: recursive
       - uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.5.1
       - run: forge test --match-path 'test/fork/*' -vvv
         env:
           FORK_TESTS: true
