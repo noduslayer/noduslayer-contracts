@@ -52,6 +52,9 @@ service. It encodes calls to these contracts by hand, so it pins itself to [`con
 — `selectors.json` is published from this repository and asserted there, which turns a signature change into
 a failing test rather than a reverted transaction.
 
+[`noduslayer-app`](https://github.com/noduslayer/noduslayer-app) is the web app: the landing page and the
+trading interface, which reads and quotes through the quoter and sends the calldata it returns.
+
 ## Development
 
 Requires [Foundry](https://getfoundry.sh) 1.5 or later.
@@ -70,6 +73,12 @@ FORK_TESTS=true forge test --match-path 'test/fork/*' -vv
 Fork tests run against Robinhood Chain mainnet. They cover in-kind mint and redeem with real tokens, zap
 routing through Uniswap v3, retail gas cost, listing the full universe, and deploying every basket in the
 catalogue with live Chainlink prices.
+
+`script/devnet.sh` stands up the whole protocol on a local anvil with Robinhood Chain's id: the mainnet
+Uniswap v3 bytecode, seeded pools priced from the live Chainlink feeds, the deployment, the timelock
+hand-over and every basket in `config/baskets/`. It writes `.devnet.env` for the quoter and the app, which
+run their end-to-end suites against it. The public RPC keeps only a few thousand blocks of state, so this
+replaces forking mainnet.
 
 Slither and Aderyn both write into `out/`, so run `forge clean` before testing again:
 
