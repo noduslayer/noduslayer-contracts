@@ -71,24 +71,31 @@ CHAIN=$(cast chain-id --rpc-url "$RPC")
 [ "$CHAIN" = 4663 ] || { echo "node reports chain $CHAIN, want 4663" >&2; exit 1; }
 [ "$(cast block-number --rpc-url "$RPC")" -lt 10000 ] || { echo "that node is not a fresh devnet; refusing" >&2; exit 1; }
 
+# Simulations must read the node, not forge's RPC cache: this chain id and block height recur on every fresh
+# anvil, and a cached reading from an earlier run would describe code that is no longer there.
 run() { # forge script from the deployer, broadcasting; everything to the log
-  forge script "$@" --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast -vv >> "$LOG" 2>&1
+  forge script "$@" --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast --no-storage-caching -vv >> "$LOG" 2>&1
 }
 addr_of() { grep -E "^\s*$1\s+0x[0-9a-fA-F]{40}\s*$" "$LOG" | tail -1 | grep -oE '0x[0-9a-fA-F]{40}'; }
 # The operation id is the script's return value; forge prints it under "== Return ==". The last one in the
 # log is the run that just finished.
 op_id() { awk '/== Return ==/{f=1; next} f && /bytes32/ {id=$NF; f=0} END{print id}' "$LOG"; }
-word() { printf '0x%064x' "$1"; }
+word() { cast to-uint256 "$1"; } # a 32-byte word from a number or an address
 
-echo "placing mainnet's Uniswap v3, WETH9 and Multicall3 bytecode"
+echo "placing mainnet's Uniswap v3 and Multicall3 bytecode, and a WETH at mainnet's WETH address"
 FACTORY_V3=$(jq -r .uniswap.v3Factory $MAINNET_CFG); ROUTER=$(jq -r .uniswap.swapRouter02 $MAINNET_CFG)
 QUOTER_V2=$(jq -r .uniswap.quoterV2 $MAINNET_CFG); WETH=$(jq -r .weth $MAINNET_CFG)
 MULTICALL3=0xcA11bde05977b3631167028862bE2a173976CA11
-for a in "$FACTORY_V3" "$ROUTER" "$QUOTER_V2" "$WETH" "$MULTICALL3"; do
+for a in "$FACTORY_V3" "$ROUTER" "$QUOTER_V2" "$MULTICALL3"; do
   code=$(cast code "$a" --rpc-url "$MAINNET_URL")
   [ "$code" != "0x" ] || { echo "no code at $a on mainnet" >&2; exit 1; }
   cast rpc anvil_setCode "$a" "$code" --rpc-url "$RPC" >/dev/null
 done
+# Mainnet's WETH is an upgradeable proxy; its storage cannot be copied, so a plain WETH with constant
+# metadata takes the address the router and quoter expect.
+forge build >/dev/null 2>&1
+cast rpc anvil_setCode "$WETH" "$(forge inspect DevnetWETH deployedBytecode)" --rpc-url "$RPC" >/dev/null
+[ "$(cast call "$WETH" 'decimals()(uint8)' --rpc-url "$RPC")" = 18 ] || { echo "WETH stand-in did not take" >&2; exit 1; }
 # The factory's owner and fee tiers live in storage the bytecode does not carry. Their slots were read off
 # mainnet's factory (owner at 3, feeAmountTickSpacing at 4; it is not the canonical layout) and are checked
 # below, so a factory that moved them fails here rather than at createPool.
@@ -115,7 +122,7 @@ ETH_PRICE=$(cast call "$(jq -r .ethUsdFeed $MAINNET_CFG)" 'latestRoundData()(uin
 echo "  $SYMBOLS"
 
 echo "deploying tokens, feeds, USDG and pools"
-SYMBOLS=$SYMBOLS PRICES=$PRICES ETH_PRICE=$ETH_PRICE OUT=$CONFIG run script/Devnet.s.sol
+SYMBOLS=$SYMBOLS PRICES=$PRICES ETH_PRICE=$ETH_PRICE OUT=$CONFIG run script/Devnet.s.sol:Devnet
 USDG=$(jq -r .usdg "config/$CONFIG.json")
 [ -n "$USDG" ] && [ "$USDG" != null ] || { echo "no devnet config written; see $LOG" >&2; exit 1; }
 
