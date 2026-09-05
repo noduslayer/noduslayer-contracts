@@ -1,25 +1,32 @@
 #!/usr/bin/env bash
-# Stands up a local fork of Robinhood Chain with the protocol deployed, ownership accepted through a
-# zero-delay timelock and a few baskets created from live feed prices, for end-to-end runs of the quoter and
-# the front end. Nothing here touches mainnet: the fork reads from it and every write stays local.
+# Stands up a local chain with the protocol deployed, ownership accepted through a zero-delay timelock and
+# baskets created from the catalogue, for end-to-end runs of the quoter and the front end.
+#
+# The chain is a local anvil with Robinhood Chain's id, not a fork: the public RPC keeps state for roughly
+# ten minutes of blocks, so a fork fails on the first storage slot it has not seen once it is that old.
+# Instead mainnet's Uniswap v3 factory, router, quoter, WETH9 and Multicall3 bytecode is placed at mainnet's
+# addresses — the router and quoter keep the factory and WETH addresses baked into them — and
+# script/Devnet.s.sol deploys stock tokens, feeds, a USDG and deep pools against USDG and WETH, priced from
+# mainnet's feeds at run time. Nothing here touches mainnet beyond reading it.
 #
 # Usage:  ./script/devnet.sh
-#   BASKETS=tech,ai   catalogue specs to create (config/baskets/<name>.json)
-#   FORK_URL=...      mainnet RPC to fork (default the public endpoint)
-#   FORK_BLOCK=<n>    pin the fork block for a reproducible run
-#   PORT=8545         anvil's port; an anvil already listening there is reused
-#   OUT=.devnet.env   where the addresses are written, in the form the quoter's flags read
+#   BASKETS=tech,ai        catalogue specs to create; their constituents are the tokens deployed
+#   MAINNET_URL=...        where bytecode and prices are read from (default the public endpoint)
+#   PORT=8545              anvil's port; an anvil already listening there is reused
+#   OUT=.devnet.env        where the addresses are written, in the form the quoter's flags read
 #
 # Anvil keeps running when this exits; `kill $(grep DEVNET_ANVIL_PID .devnet.env | cut -d= -f2)` stops it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-FORK_URL=${FORK_URL:-https://rpc.mainnet.chain.robinhood.com}
+MAINNET_URL=${MAINNET_URL:-https://rpc.mainnet.chain.robinhood.com}
 PORT=${PORT:-8545}
 RPC=http://127.0.0.1:$PORT
 BASKETS=${BASKETS:-tech,ai}
 OUT=${OUT:-.devnet.env}
 LOG=${LOG:-.devnet.log}
+CONFIG=robinhood-devnet
+MAINNET_CFG=config/robinhood-mainnet.json
 export OPS_DIR=governance/ops-devnet
 
 # anvil's deterministic accounts: 0 deploys and stands in for the multisig, 1 is the treasury, 2 is a user.
@@ -51,19 +58,18 @@ ANVIL_PID=
 if cast chain-id --rpc-url "$RPC" >/dev/null 2>&1; then
   echo "using the node already listening on :$PORT"
 else
-  echo "starting anvil as a fork of $FORK_URL on :$PORT"
-  # shellcheck disable=SC2086
-  nohup anvil --fork-url "$FORK_URL" --port "$PORT" ${FORK_BLOCK:+--fork-block-number $FORK_BLOCK} \
-    --silent > .devnet-anvil.log 2>&1 &
+  echo "starting anvil on :$PORT"
+  nohup anvil --chain-id 4663 --port "$PORT" --balance 1000000 --gas-limit 60000000 --silent > .devnet-anvil.log 2>&1 &
   ANVIL_PID=$!
   disown
-  for _ in $(seq 1 120); do
+  for _ in $(seq 1 60); do
     cast chain-id --rpc-url "$RPC" >/dev/null 2>&1 && break
     sleep 0.5
   done
 fi
 CHAIN=$(cast chain-id --rpc-url "$RPC")
-[ "$CHAIN" = 4663 ] || { echo "node reports chain $CHAIN, want 4663 (a fork keeps mainnet's id)" >&2; exit 1; }
+[ "$CHAIN" = 4663 ] || { echo "node reports chain $CHAIN, want 4663" >&2; exit 1; }
+[ "$(cast block-number --rpc-url "$RPC")" -lt 10000 ] || { echo "that node is not a fresh devnet; refusing" >&2; exit 1; }
 
 run() { # forge script from the deployer, broadcasting; everything to the log
   forge script "$@" --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast -vv >> "$LOG" 2>&1
@@ -72,10 +78,49 @@ addr_of() { grep -E "^\s*$1\s+0x[0-9a-fA-F]{40}\s*$" "$LOG" | tail -1 | grep -oE
 # The operation id is the script's return value; forge prints it under "== Return ==". The last one in the
 # log is the run that just finished.
 op_id() { awk '/== Return ==/{f=1; next} f && /bytes32/ {id=$NF; f=0} END{print id}' "$LOG"; }
+word() { printf '0x%064x' "$1"; }
 
-echo "deploying"
-MULTISIG=$DEPLOYER TREASURY=$TREASURY TIMELOCK_MIN_DELAY=0 CONFIG=robinhood-mainnet \
-  run script/Deploy.s.sol
+echo "placing mainnet's Uniswap v3, WETH9 and Multicall3 bytecode"
+FACTORY_V3=$(jq -r .uniswap.v3Factory $MAINNET_CFG); ROUTER=$(jq -r .uniswap.swapRouter02 $MAINNET_CFG)
+QUOTER_V2=$(jq -r .uniswap.quoterV2 $MAINNET_CFG); WETH=$(jq -r .weth $MAINNET_CFG)
+MULTICALL3=0xcA11bde05977b3631167028862bE2a173976CA11
+for a in "$FACTORY_V3" "$ROUTER" "$QUOTER_V2" "$WETH" "$MULTICALL3"; do
+  code=$(cast code "$a" --rpc-url "$MAINNET_URL")
+  [ "$code" != "0x" ] || { echo "no code at $a on mainnet" >&2; exit 1; }
+  cast rpc anvil_setCode "$a" "$code" --rpc-url "$RPC" >/dev/null
+done
+# The factory's owner and fee tiers live in storage the bytecode does not carry. Their slots were read off
+# mainnet's factory (owner at 3, feeAmountTickSpacing at 4; it is not the canonical layout) and are checked
+# below, so a factory that moved them fails here rather than at createPool.
+cast rpc anvil_setStorageAt "$FACTORY_V3" "$(word 3)" "$(word "$DEPLOYER")" --rpc-url "$RPC" >/dev/null
+for pair in 100:1 500:10 3000:60 10000:200; do
+  fee=${pair%%:*}; spacing=${pair##*:}
+  cast rpc anvil_setStorageAt "$FACTORY_V3" "$(cast index uint24 "$fee" 4)" "$(word "$spacing")" --rpc-url "$RPC" >/dev/null
+done
+[ "$(cast call "$FACTORY_V3" 'feeAmountTickSpacing(uint24)(int24)' 500 --rpc-url "$RPC")" = 10 ] \
+  || { echo "the factory's storage layout is not the one this script expects" >&2; exit 1; }
+[ "$(cast call "$FACTORY_V3" 'owner()(address)' --rpc-url "$RPC")" = "$DEPLOYER" ] \
+  || { echo "the factory's owner slot is not the one this script expects" >&2; exit 1; }
+
+echo "reading prices for the baskets' constituents from mainnet's feeds"
+SYMBOLS=$(for b in ${BASKETS//,/ }; do jq -r '.symbols[]' "config/baskets/$b.json"; done | sort -u | paste -sd, -)
+PRICES=""
+for sym in ${SYMBOLS//,/ }; do
+  feed=$(jq -r --arg s "$sym" '.stockFeeds[(.stockSymbols | index($s))]' $MAINNET_CFG)
+  [ "$feed" != "0x0000000000000000000000000000000000000000" ] || { echo "$sym has no feed; pick baskets whose constituents are priced" >&2; exit 1; }
+  price=$(cast call "$feed" 'latestRoundData()(uint80,int256,uint256,uint256,uint80)' --rpc-url "$MAINNET_URL" | sed -n 2p | awk '{print $1}')
+  PRICES="${PRICES:+$PRICES,}$price"
+done
+ETH_PRICE=$(cast call "$(jq -r .ethUsdFeed $MAINNET_CFG)" 'latestRoundData()(uint80,int256,uint256,uint256,uint80)' --rpc-url "$MAINNET_URL" | sed -n 2p | awk '{print $1}')
+echo "  $SYMBOLS"
+
+echo "deploying tokens, feeds, USDG and pools"
+SYMBOLS=$SYMBOLS PRICES=$PRICES ETH_PRICE=$ETH_PRICE OUT=$CONFIG run script/Devnet.s.sol
+USDG=$(jq -r .usdg "config/$CONFIG.json")
+[ -n "$USDG" ] && [ "$USDG" != null ] || { echo "no devnet config written; see $LOG" >&2; exit 1; }
+
+echo "deploying the protocol"
+MULTISIG=$DEPLOYER TREASURY=$TREASURY TIMELOCK_MIN_DELAY=0 CONFIG=$CONFIG run script/Deploy.s.sol
 TIMELOCK=$(addr_of TimelockController); REGISTRY=$(addr_of StockRegistry); FACTORY=$(addr_of BasketFactory)
 ZAP=$(addr_of BasketZap); MIGRATOR=$(addr_of BasketMigrator); LENS=$(addr_of BasketLens)
 for v in TIMELOCK REGISTRY FACTORY ZAP MIGRATOR LENS; do
@@ -92,42 +137,18 @@ MODE=execute OP=$OP run script/TimelockAccept.s.sol
   || { echo "the timelock did not take ownership" >&2; exit 1; }
 
 echo "creating baskets: $BASKETS"
-MODE=schedule LABEL="devnet baskets" BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol
+MODE=schedule LABEL="devnet baskets" BASKETS=$BASKETS CONFIG=$CONFIG run script/CreateBasket.s.sol
 OP=$(op_id)
 [ -n "$OP" ] || { echo "no operation id from CreateBasket; see $LOG" >&2; exit 1; }
-MODE=execute OP=$OP BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol
-BASKET_LIST=$(cast call "$FACTORY" 'baskets()(address[])' --rpc-url "$RPC" | tr -d '[] ' )
+MODE=execute OP=$OP BASKETS=$BASKETS CONFIG=$CONFIG run script/CreateBasket.s.sol
+BASKET_LIST=$(cast call "$FACTORY" 'baskets()(address[])' --rpc-url "$RPC" | tr -d '[] ')
 [ -n "$BASKET_LIST" ] || { echo "the factory lists no baskets" >&2; exit 1; }
 
-echo "funding the user with USDG"
-USDG=$(jq -r .usdg config/robinhood-mainnet.json); WETH=$(jq -r .weth config/robinhood-mainnet.json)
-PM=$(jq -r .uniswap.poolManager config/robinhood-mainnet.json)
-HELD=$(cast call "$USDG" 'balanceOf(address)(uint256)' "$PM" --rpc-url "$RPC" | awk '{print $1}')
-[ "$HELD" -ge 100000000000 ] || { echo "the pool manager holds only $HELD USDG units on this fork" >&2; exit 1; }
-cast rpc anvil_impersonateAccount "$PM" --rpc-url "$RPC" >/dev/null
-cast rpc anvil_setBalance "$PM" 0x56BC75E2D63100000 --rpc-url "$RPC" >/dev/null
-cast send "$USDG" 'transfer(address,uint256)' "$USER" 50000000000 --from "$PM" --unlocked --rpc-url "$RPC" >/dev/null
-cast rpc anvil_stopImpersonatingAccount "$PM" --rpc-url "$RPC" >/dev/null
-
-# A fresh fork fetches every storage slot a quote simulation touches from mainnet the first time; probing
-# each constituent's pools once here means the first quote the quoter serves is not the one that pays.
-echo "warming the fork's pool state"
-QUOTER_V2=$(jq -r .uniswap.quoterV2 config/robinhood-mainnet.json)
-for b in ${BASKET_LIST//,/ }; do
-  for token in $(cast call "$b" 'constituents()((address,uint256)[])' --rpc-url "$RPC" | grep -oE '0x[0-9a-fA-F]{40}'); do
-    for tier in 500 3000; do
-      cast call "$QUOTER_V2" 'quoteExactOutputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
-        "($USDG,$token,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
-      cast call "$QUOTER_V2" 'quoteExactInputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
-        "($token,$USDG,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
-      cast call "$QUOTER_V2" 'quoteExactOutputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
-        "($WETH,$token,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
-    done
-  done
-done
+echo "funding the user"
+cast send "$USDG" 'mint(address,uint256)' "$USER" 50000000000 --private-key "$DEPLOYER_KEY" --rpc-url "$RPC" >/dev/null
 
 cat > "$OUT" <<ENV
-# Written by script/devnet.sh. A local fork of Robinhood Chain; every address below is local to it.
+# Written by script/devnet.sh. A local chain with Robinhood Chain's id; every address below is local to it.
 DEVNET_RPC=$RPC
 DEVNET_CHAIN_ID=4663
 DEVNET_ANVIL_PID=$ANVIL_PID
@@ -141,6 +162,7 @@ DEVNET_USDG=$USDG
 DEVNET_WETH=$WETH
 DEVNET_BASKETS=$BASKET_LIST
 QUOTER_RPC=$RPC
+QUOTER_CONFIG=$PWD/config/$CONFIG.json
 QUOTER_FACTORY=$FACTORY
 QUOTER_ZAP=$ZAP
 QUOTER_LENS=$LENS
@@ -149,8 +171,6 @@ QUOTER_CORS_ORIGINS=http://localhost:3000
 QUOTER_BLOCKED_COUNTRIES=
 QUOTER_NAV_INTERVAL=30s
 QUOTER_INDEX_INTERVAL=5s
-QUOTER_RPC_TIMEOUT=120s
-QUOTER_HTTP_WRITE_TIMEOUT=180s
 ENV
 
 echo
@@ -161,6 +181,7 @@ echo "  factory   $FACTORY"
 echo "  zap       $ZAP"
 echo "  migrator  $MIGRATOR"
 echo "  lens      $LENS"
+echo "  usdg      $USDG"
 echo "  baskets   $BASKET_LIST"
-echo "  user      $USER (50,000 USDG, 10,000 ETH)"
+echo "  user      $USER (50,000 USDG, 1,000,000 ETH)"
 echo "next: set -a; . $OUT; set +a; go run ./cmd/quoter      # in noduslayer-quoter"

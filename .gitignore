@@ -21,3 +21,4 @@ contracts/.devnet.env
 contracts/.devnet.log
 contracts/.devnet-anvil.log
 contracts/governance/ops-devnet/
+contracts/config/robinhood-devnet.json
