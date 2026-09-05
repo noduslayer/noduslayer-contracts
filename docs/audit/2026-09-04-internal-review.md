@@ -43,6 +43,7 @@ Toolchain: Foundry 1.5.1, solc 0.8.30 (cancun, optimizer 10k runs), OpenZeppelin
 | A-03 | — | Acknowledged | Slither `calls-loop` (18) |
 | A-04 | — | Acknowledged | Slither `timestamp` (2) |
 | A-05 | — | Acknowledged | Aderyn low/informational items (centralization, loops, literals, style) |
+| A-06 | — | Acknowledged | Aderyn H "contract locks Ether" on `BasketZap`: `sweepEther` sends through `Address.sendValue`, which the detector does not recognise as a withdrawal |
 
 ### L-01 — `setFeed` unusable after delisting (fixed)
 
@@ -142,19 +143,22 @@ point; listing anything else would let `mint` under-collateralise.
 
 ## Evidence
 
-- `forge test`: 124 passed, 0 failed (6 unit suites); fuzz 512 runs.
-- `forge coverage`: 100 % lines, statements, branches and functions for every file in `src/`.
+- `forge test`: 197 passed, 0 failed (13 suites, 2026-09-05): unit, fuzz (512 runs), stateful invariants
+  (64 runs × depth 48) for the vault and the zap, hostile-router tests, governance scripts end to end.
+- `forge coverage` (`--no-match-coverage '(script|test)/'`): 98–100 % lines per file in `src/`; CI fails under 97 %.
 - Mainnet fork (`FORK_TESTS=true`, block ≈ 54.0 M, 2026-09-04):
   canonical token names verified; in-kind mint/redeem with real NVDA/AAPL;
   Chainlink NAV of the 0.20 NVDA + 0.15 AAPL test basket = 95.376 USD/share;
   `zapMint` of 0.05 shares through Uniswap v3 SwapRouter02 cost 4.806 USDG (≈ 0.8 % over NAV
   including 0.2 % zap fee, 0.1 % mint fee and two 0.05 % pools);
   `zapRedeem` of 0.5 shares returned 47.474 USDG (≈ 0.45 % under NAV); zap balances zero after each.
-- Runtime sizes (bytes): BasketFactory 14,760 · BasketToken 9,440 · BasketZap 8,451 ·
-  BasketLens 3,618 · StockRegistry 3,381 (limit 24,576).
+- Runtime sizes (bytes, 2026-09-05): BasketFactory 15,677 · BasketZap 12,872 · BasketToken 9,882 ·
+  BasketMigrator 9,398 · BasketLens 4,227 · StockRegistry 3,998 (limit 24,576).
 - `forge lint`: 0 findings (excluded: `screaming-snake-case-immutable` by convention,
   `unsafe-cheatcode` for scripts/tests). `forge fmt --check`: clean.
-- Slither / Aderyn raw output: `slither.json`, `aderyn.md` in this directory.
+- Slither / Aderyn output: `slither.json` (run with `contracts/slither.config.json`, which drops low and
+  informational detectors and answers the medium ones in-line where they are raised; 0 results) and
+  `aderyn.md` in this directory, both regenerated 2026-09-05.
 
 ## Before mainnet
 
@@ -166,8 +170,11 @@ point; listing anything else would let `mint` under-collateralise.
 
 ## Follow-ups (not blocking)
 
-- `zapRedeem` variant that consumes an ERC-2612 permit for the basket shares.
-- Native ETH input via WETH wrapping in the zap.
-- Migration zap (v1 → v2 recipe) that trades only the recipe difference.
+Done since this review, covered by tests but not re-reviewed end to end: permit variants of every entry
+point, ether input through WETH, the migration zap, basket retirement, the fee charged on the spend rather
+than the input, `redeemWithSkipFor` so a routed skip exit credits the holder, stateful invariants, and
+hostile-router tests. `slither.json` and `aderyn.md` here are regenerated from the current tree; the
+Aderyn highs are A-01 and A-06.
+
 - Quote service: pool graph (Uniswap v2/v3/v4, Rialto), Quoter simulation, RFQ comparison,
   gas-aware objective, Chainlink sanity bound with market-hours-aware tolerance.

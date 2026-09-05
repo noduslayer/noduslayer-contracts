@@ -58,6 +58,7 @@ cast call $ZAP      "owner()(address)" --rpc-url robinhood
 cast call $MIGRATOR "owner()(address)" --rpc-url robinhood
 cast call $ZAP      "paused()(bool)"   --rpc-url robinhood   # false
 cast call $MIGRATOR "paused()(bool)"   --rpc-url robinhood   # false
+cast call $ZAP      "weth()(address)"  --rpc-url robinhood   # the config's weth
 ```
 
 Until the timelock has accepted, the deployer is still owner. Do not create baskets or announce the
@@ -91,6 +92,13 @@ Arbitrum default, and the testnet rehearsal is where that assumption is checked.
 
 The label seeds the operation's salt, so re-creating a set of baskets that was created before needs a
 `LABEL` of its own.
+
+The factory deploys each basket with `new`, so the deploy's `--verify` never sees them. Verify every new
+basket's source once the operation has executed:
+
+```sh
+BASKET=0x... ./script/verify-basket.sh
+```
 
 ## Governance
 
@@ -132,14 +140,16 @@ says about each available from `MODE=status`. Commit them.
 
 | Action | Target | Call |
 |---|---|---|
-| Change basket fees | basket | `setFees(uint16,uint16,address)`, capped at 1% each |
+| Change basket fees | basket | `setFees(uint16,uint16)`, capped at 1% each |
+| Retire a basket | factory | `retire(address,address)` — basket and successor, or zero; not reversible |
 | Change zap fee | zap | `setFee(uint16)`, capped at 0.5% |
 | Allow-list a router | zap | `setRouter(address,bool)` |
 | Allow-list a router | migrator | `setRouter(address,bool)` — a separate list from the zap's, on purpose |
 | Pause or resume the zap | zap | `pause()` / `unpause()` |
 | List or delist a constituent | registry | `list`, `listMany`, `delist` |
 | Repoint a Chainlink feed | registry | `setFeed(address,address)` |
-| Move the treasury | factory, zap | `setTreasury(address)` |
+| Move the treasury | factory, zap | `setTreasury(address)` — every basket reads the factory's |
+| Recover stranded value | zap, migrator | `sweep(address,address)`; `sweepEther(address)` on the zap |
 
 The router allow-list is the sharpest lever the protocol has. A malicious router combined with matching
 calldata from a compromised front end could take a caller's funds inside that one transaction. The zap
@@ -152,9 +162,11 @@ so holders can always exit to the underlying tokens even if the timelock is capt
 ## Incidents
 
 **A constituent is paused or block-listed by the issuer.** `redeem` reverts for that leg. Holders exit with
-`redeemWithSkip(shares, to, skipMask)`, which credits the frozen leg to `claimable` and pays out the rest;
-they collect the remainder with `claim(token, to)` once the issuer lifts the freeze. Publish the correct
-`skipMask` for the affected basket. No governance action is required, and none can speed it up.
+`redeemWithSkip(shares, to, skipMask)`, which credits the frozen leg to `claimable` and pays out the rest,
+or sell the rest in one transaction with the zap's `zapRedeemWithSkip`, which credits the frozen leg to
+them the same way; they collect it with `claim(token, to)` once the issuer lifts the freeze. Publish the
+correct `skipMask` for the affected basket — bit `i` set for constituent `i` in recipe order. No governance
+action is required, and none can speed it up.
 
 **A Chainlink feed goes bad.** `BasketLens.nav` reverts and the quote service refuses to quote that
 constituent. Schedule `setFeed(token, newFeed)` on the registry, or `setFeed(token, address(0))` to detach
@@ -166,7 +178,9 @@ nothing at rest. Mint and redeem in kind are unaffected by either.
 
 **A basket needs rebalancing.** Recipes are immutable, so create a new version and publish the migration
 path rather than trying to change the old one. `BasketMigrator` moves holders in one transaction and trades
-only the legs that differ; both versions stay fully backed, and nobody is forced to move.
+only the legs that differ; both versions stay fully backed, and nobody is forced to move. Once the successor
+exists, schedule `retire(old, successor)` on the factory: the old basket stops taking new shares and points
+at its successor on-chain, while every exit from it stays open.
 
 **Depth collapses under a live basket.** Recipes are immutable, so the basket cannot be repaired in place.
 Users are still protected per transaction by `minAmountOut`, and the failure mode is expensive entry and

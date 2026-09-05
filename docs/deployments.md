@@ -38,9 +38,12 @@ from testnet state before `CONFIG=robinhood-testnet` will work.
 
 ## Baskets
 
-| Symbol | Address | Recipe | Created |
-|---|---|---|---|
-| — | — | — | — |
+| Symbol | Address | Recipe | Created | Verified | Retired → successor |
+|---|---|---|---|---|---|
+| — | — | — | — | — | — |
+
+Verify each basket's source with `BASKET=0x... contracts/script/verify-basket.sh` after the creating
+operation executes; the factory deploys them, so the deploy's `--verify` does not cover them.
 
 ## Verifying a deployment
 
@@ -52,6 +55,9 @@ for c in $REGISTRY $FACTORY $ZAP $MIGRATOR; do cast call $c "owner()(address)" -
 
 # the zap and the migrator point at the factory they were deployed against, and neither is paused
 for c in $ZAP $MIGRATOR; do cast call $c "factory()(address)" --rpc-url robinhood; cast call $c "paused()(bool)" --rpc-url robinhood; done
+
+# the zap wraps into the WETH the config names
+cast call $ZAP "weth()(address)" --rpc-url robinhood
 
 # the registry lists what the config says it should
 cast call $REGISTRY "tokens()(address[])" --rpc-url robinhood | tr ',' '\n' | wc -l

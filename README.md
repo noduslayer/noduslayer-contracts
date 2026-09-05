@@ -21,7 +21,11 @@ rather than rebasing balances, so a recipe expressed in raw units stays correct 
 
 Routing is decided off-chain. The zap only enforces the router allow-list, exact-output backing, the
 caller's minimum output, and a deadline. It holds no balance between transactions and refunds every
-leftover, so a malformed route can only cost its own sender.
+leftover, so a malformed route can only cost its own sender. Its fee is charged on what the route spent,
+not on what was sent; the input can be a token, a token with an EIP-2612 permit, or ether.
+
+A recipe never changes. A rebalance is a new basket plus a migrator that trades only the difference, and
+the old basket is retired: closed to new shares, open for every exit, pointing at its successor on-chain.
 
 ## Contracts
 
@@ -30,7 +34,8 @@ leftover, so a malformed route can only cost its own sender.
 | `StockRegistry` | Canonical stock-token addresses and their optional Chainlink feeds. Gates basket creation. |
 | `BasketFactory` | Deploys baskets, validates constituents against the registry, records official baskets. |
 | `BasketToken` | The basket: ERC-20 with permit, backed by a fixed recipe. Mint and redeem in kind; never pausable. |
-| `BasketZap` | Buy or sell a basket in one transaction through allow-listed routers. |
+| `BasketZap` | Buy or sell a basket in one transaction through allow-listed routers, from a token, a permit or ether. |
+| `BasketMigrator` | Move a holder from one basket version to the next, trading only the legs that changed. |
 | `BasketLens` | Read-only NAV and per-constituent quotes from Chainlink. |
 
 - [`docs/design.md`](docs/design.md) — architecture, invariants, fee model, threat model
@@ -109,7 +114,7 @@ and pins the recipe in `governance/ops/<id>.json` so what executes after the del
 
 ## Status
 
-The v1 contracts are complete, with unit, fuzz and mainnet-fork coverage and an internal review. All 194
+The v1 contracts are complete, with unit, fuzz, invariant and mainnet-fork coverage and an internal review. All 194
 published Robinhood stock tokens can be listed; 35 carry a Chainlink feed and can be priced on-chain.
 Baskets are curated by the protocol — `createBasket` is `onlyOwner`.
 

@@ -26,14 +26,16 @@ chain id 4663.
 ```
                       off-chain Quote Service (routes, splits, oracle sanity, calldata)
                                             │
-   user ──USDG/any token──►  BasketZap  ────┼──► allow-listed routers (Uniswap SwapRouter02,
+   user ──token / ether──►   BasketZap  ────┼──► allow-listed routers (Uniswap SwapRouter02,
              ◄── shares ──   (Pausable)     │    UniversalRouter, 1inch, 0x …)
                                 │ mint / redeem in kind
                                 ▼
                           BasketToken (vault, immutable recipe, never pausable)
                                 ▲
+              BasketMigrator ───┤ moves holders between versions, trading only the difference
+                                │
               BasketFactory ────┘ deploys, validates constituents against
-                    │             StockRegistry, records official baskets
+                    │             StockRegistry, records official baskets, retires old ones
               StockRegistry ─── canonical stock-token addresses + Chainlink feeds
               BasketLens ────── read-only NAV / per-constituent quotes
 ```
@@ -41,9 +43,10 @@ chain id 4663.
 | Contract | Owner | Mutable state after deployment |
 |---|---|---|
 | `StockRegistry` | protocol multisig (2-step) | listed set, feed per token |
-| `BasketFactory` | protocol multisig | treasury, basket registry |
+| `BasketFactory` | protocol multisig | treasury, basket registry, retirement flags and successors |
 | `BasketToken` | none — fee params governed by `factory.owner()` | fees within 1% cap, claims ledger |
 | `BasketZap` | protocol multisig | router allow-list, fee ≤ 0.5%, treasury, paused flag |
+| `BasketMigrator` | protocol multisig | router allow-list, paused flag |
 | `BasketLens` | none | none |
 
 ## Recipe and units
@@ -57,15 +60,17 @@ recipe stays valid across splits and dividends without any vault logic.
 ## Mint and redeem
 
 - `mint(shares, to)` pulls `ceil(shares · units_i / 1e18)` of each constituent from the caller,
-  mints `shares − fee` to `to` and `fee` to the fee recipient. Fees are settled in shares so they
-  stay backed.
+  mints `shares − fee` to `to` and `fee` to the factory's treasury, read live. Fees are settled in
+  shares so they stay backed. A retired basket refuses to mint.
 - `redeem(shares, to)` moves `fee` shares to the fee recipient, burns the rest and pays
   `floor(net · units_i / 1e18)` of each constituent. It has no pause switch and touches no
   oracle or router.
 - `redeemWithSkip(shares, to, skipMask)` is the escape hatch for a constituent the issuer has
   paused or block-listed: skipped legs are credited to `claimable[to][token]` instead of
   transferred, and collected later with `claim(token, to)`. All ledger writes happen before any
-  token leaves the vault.
+  token leaves the vault. `redeemWithSkipFor(shares, to, claimant, skipMask)` is the same for a
+  contract acting on a holder's behalf: the paid legs go to `to`, the frozen leg is owed to
+  `claimant`. The zap uses it so the claim lands with the holder, never with the zap.
 
 **Backing invariant**, checked by fuzz tests for every constituent `i`:
 
@@ -79,21 +84,37 @@ Rounding is always in the vault's favour; dust accumulates in the vault and is n
 
 `zapMint(basket, tokenIn, amountIn, shares, swaps[], to, deadline)`:
 
-1. Pull `amountIn`, send the zap fee to the treasury.
+1. Snapshot the zap's balance of every tracked token — the recipe, `tokenIn`, and each leg's
+   sell token — then pull `amountIn`. Everything after this is measured against that snapshot.
 2. Execute each `Swap {router, sellToken, prefund, data}`: router must be allow-listed;
-   `sellToken` is approved for the duration of the call (and optionally pre-transferred for
-   routers that settle from their own balance, e.g. UniversalRouter v4 actions); approval is
-   reset to zero afterwards.
-3. Require the zap now holds at least `previewMint(shares)` of every constituent, approve the
-   exact amounts, mint to `to`.
-4. Refund every remaining constituent and `tokenIn` to the caller.
+   `sellToken` is approved for the duration of the call, and only for what this call has gained
+   of it (optionally pre-transferred for routers that settle from their own balance, e.g.
+   UniversalRouter v4 actions); approval is reset to zero afterwards.
+3. Require the call gained at least `previewMint(shares)` of every constituent, mint to `to`.
+4. Charge the fee on what the swaps spent — `amountIn` less what is left of it — and take it out
+   of that remainder. The caller therefore sends the spend plus the fee on it, and the quote
+   service sizes `amountIn` that way. Charging `amountIn` itself would tax the slippage allowance
+   that comes back in the next step.
+5. Refund every remaining constituent and the rest of `tokenIn` to the caller.
+
+`zapMintWithPermit` takes an EIP-2612 `Permit {value, deadline, v, r, s}` in place of a prior
+approval. The permit is spent in a `try`: anyone who has seen it can submit it first, and a
+signature already used has already done its work, so the transfer that follows enforces the
+allowance rather than the permit call. `zapMintETH(basket, shares, swaps[], to, deadline)` takes
+ether, wraps it into the chain's WETH for the route and unwraps what was not spent; the WETH
+address is a constructor argument, and only WETH may send ether to the zap.
 
 `zapRedeem(basket, shares, tokenOut, minAmountOut, swaps[], to, deadline)` mirrors it: pull
-shares, redeem in kind to the zap, execute legs, take the fee from `tokenOut`, require
-`amountOut ≥ minAmountOut`, pay `to`, refund unsold constituents.
+shares, redeem in kind to the zap, execute legs, take the fee from what the legs produced of
+`tokenOut`, require `amountOut ≥ minAmountOut`, pay `to`, refund unsold constituents.
+`zapRedeemWithSkip(…, skipMask, …)` is the routed form of `redeemWithSkip`: the paid legs are
+sold, the frozen leg is credited on the basket to `to`. `zapRedeemWithPermit` spends a permit on
+the shares.
 
 The zap only ever holds a caller's in-flight funds inside their own transaction, so malformed
-routes can only cost their author. `sweep` exists for dust a route leaves behind.
+routes can only cost their author. Because accounting is in deltas, a balance already sitting in
+the contract can neither fund a mint nor be paid out as proceeds; `sweep` and `sweepEther` are
+the only exits for it.
 
 ## Routing (off-chain, phase 2 service)
 
@@ -165,9 +186,15 @@ the 1% floor, fail to sum to 100%, or name a constituent with no feed.
 
 | Fee | Where | Cap | Default |
 |---|---|---|---|
-| mint | shares minted to fee recipient | 1.00% | 0.10% |
-| redeem | shares transferred to fee recipient | 1.00% | 0.10% |
-| zap | input token (mint) / output token (redeem) to treasury | 0.50% | 0.20% |
+| mint | shares minted to the factory's treasury | 1.00% | 0.10% |
+| redeem | shares transferred to the factory's treasury | 1.00% | 0.10% |
+| zap mint | `tokenIn`, on what the swaps spent, to the zap's treasury | 0.50% | 0.20% |
+| zap redeem | `tokenOut`, on what the swaps produced, to the zap's treasury | 0.50% | 0.20% |
+| migrate | none — the two baskets' redeem and mint fees already apply | — | — |
+
+Baskets read the treasury from the factory rather than storing their own, so moving it is one
+governance action for every basket. `setFees(mintFeeBps, redeemFeeBps)` on a basket is callable by
+the factory's owner only.
 
 ## Versioning (option C)
 
@@ -184,6 +211,16 @@ Holders who do not migrate keep a fully backed old basket; nothing expires.
 accounting. That code decides what a call may spend and refund, so keeping one copy is what stops a fix
 from landing on one contract and not the other. Each deployment keeps its own allow-list: sharing one would
 let a paused or replaced peer disable routing everywhere.
+
+## Retirement
+
+`BasketFactory.retire(basket, successor)` marks a basket the protocol has moved on from. From then on it
+takes no new shares — `mint` reverts with `Retired`, the zap and the migrator refuse it as a destination
+with `BasketRetired` — while `redeem`, `redeemWithSkip`, `claim`, the zap's exits and migrating *out of*
+it stay open forever. `successor` names the basket holders should migrate to, or is zero; it must be a
+live basket other than the one retiring. Retirement is not reversible: a basket worth reviving is worth a
+new deployment. The state is public (`isRetired`, `successorOf`, `BasketRetired`), so a front end or the
+quote service can steer holders without a trusted list.
 
 ## Chain facts relied upon
 
