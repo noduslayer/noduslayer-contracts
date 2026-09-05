@@ -15,3 +15,9 @@ contracts/config/robinhood-rehearsal.json
 contracts/governance/ops-test/
 contracts/config/_test-*.json
 contracts/config/baskets/_test-*.json
+
+# Written by contracts/script/devnet.sh for a local fork; the addresses are different on every run.
+contracts/.devnet.env
+contracts/.devnet.log
+contracts/.devnet-anvil.log
+contracts/governance/ops-devnet/
