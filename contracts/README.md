@@ -11,7 +11,8 @@ test/           unit and fuzz tests; test/invariant/ stateful invariants; test/f
 script/         Deploy, TimelockAccept, CreateBasket, Govern (timelock-driven), RehearsalFixture,
                 Devnet (tokens, feeds and seeded pools for devnet.sh); devnet.sh, verify-basket.sh,
                 coverage-floor.sh
-config/         robinhood-mainnet.json (external addresses), baskets/*.json (specs), catalogue.json
+config/         robinhood-mainnet.json (external addresses), robinhood-mainnet.v4pools.json (the Uniswap v4
+                pools the quoter probes, written by its cmd/v4pools), baskets/*.json (specs), catalogue.json
 abi/            published ABI, selectors and errors — the surface other repositories pin to
 governance/     one file per scheduled timelock operation
 ```

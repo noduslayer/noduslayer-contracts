@@ -118,12 +118,19 @@ the only exits for it.
 
 ## Routing (off-chain, phase 2 service)
 
-The Quote Service owns the graph of pools (Uniswap v2/v3/v4 + Rialto), quotes every candidate
-route at the real trade size (Quoter contracts and RFQ APIs), tries splits, prices gas into the
-objective, sanity-bounds the result with Chainlink, and encodes `Swap[]` calldata. The UI shows
-one price from "our routing engine"; venue attribution lives in logs and documentation. Stock
-feeds update 24/5, so the service must widen tolerances outside US market hours rather than
-trust a stale feed against a 24/7 AMM.
+The quoter (`noduslayer-quoter`) prices every constituent leg against Uniswap v3 and v4 at the real
+trade size, in one batched read: the four v3 fee tiers through QuoterV2, and every v4 pool worth asking
+through V4Quoter. Because a v4 pool is a key in the PoolManager singleton and the liquid keys are not
+guessable, they come from an inventory the quoter's `cmd/v4pools` maintains from `Initialize` events, live
+StateView liquidity and a reference-sized probe per pair, committed here as
+`config/robinhood-mainnet.v4pools.json`. The leg goes to whichever pool answered best; the result is
+sanity-bounded with Chainlink and encoded as `Swap[]` calldata. A v3 leg runs through SwapRouter02 on the
+allowance the executor opens for it; a v4 leg runs through the UniversalRouter with the router paying from
+a balance the executor prefunds (`Swap.prefund`), taking the output to the executor and sweeping the
+remainder back. Splits and RFQ venues are future work; at retail size neither pays for its gas. The UI
+shows one price from "our routing engine"; venue attribution lives in the leg data and documentation.
+Stock feeds update 24/5, so the service widens tolerances outside US market hours rather than trust a
+stale feed against a 24/7 AMM.
 
 ## Constituent eligibility and weight caps
 
@@ -164,7 +171,8 @@ executes 0.30% over oracle while $20,000 executes 37.68% over. At $250 and $1,00
 immeasurable — NVDA quotes +0.01% at both.
 
 Depth here is v4 PoolManager balances plus all USDG v2/v3 pools. That figure is wrong in both directions
-and should be replaced by quote-derived capacity once the quoter covers v4.
+and should be replaced by quote-derived capacity now that the quoter covers v4; the depth caps in the
+config remain the conservative measure until that replacement is done.
 
 It understates on one side: WETH-paired pools and RFQ liquidity are not counted at all, and several tokens
 (ORCL, CRWV, CLSK, RGTI, IONQ, NBIS) trade $10-25M a day via RFQ on almost no AMM depth, so their caps are
@@ -174,9 +182,10 @@ It overstates on the other, and an earlier version of this document had that bac
 is a singleton whose balance is spread across every pool it holds, and on this chain that is a very large
 number of mostly worthless pools: NVDA alone has over 10,000 v4 pools, of which 224 pair against USDG and
 only 45 carry no hook, with fee tiers running up to 99% and the dynamic-fee flag. Attributing the whole
-singleton balance to reachable depth credits a constituent with liquidity no trade can touch. Quoting v4
-safely needs a persistent `Initialize` indexer and a hook allow-list, which `services/quoter` does not yet
-have; until then its numbers cover v2 and v3 only.
+singleton balance to reachable depth credits a constituent with liquidity no trade can touch. The quoter
+therefore works from an inventory of the pools that actually answer a reference-sized probe, hooked or
+not, rather than from the singleton's balance; hooks are not allow-listed, because the calldata bounds
+every amount and the dry run from the caller's address catches a hook that would refuse the trade.
 
 `config/baskets/*.json` declares **target weights**, not raw units. `script/CreateBasket.s.sol` reads live
 Chainlink prices at creation, derives `units`, and rejects any recipe whose weights breach a cap, fall below

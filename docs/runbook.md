@@ -145,6 +145,7 @@ says about each available from `MODE=status`. Commit them.
 | Change zap fee | zap | `setFee(uint16)`, capped at 0.5% |
 | Allow-list a router | zap | `setRouter(address,bool)` |
 | Allow-list a router | migrator | `setRouter(address,bool)` — a separate list from the zap's, on purpose |
+| Refresh the Uniswap v4 pool inventory | off-chain | `make v4-pools` in the quoter repository, then commit `config/robinhood-mainnet.v4pools.json` here; weekly, or when a constituent's quotes worsen |
 | Pause or resume the zap | zap | `pause()` / `unpause()` |
 | List or delist a constituent | registry | `list`, `listMany`, `delist` |
 | Repoint a Chainlink feed | registry | `setFeed(address,address)` |
