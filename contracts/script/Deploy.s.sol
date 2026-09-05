@@ -9,6 +9,7 @@ import {BasketLens} from "../src/BasketLens.sol";
 import {BasketMigrator} from "../src/BasketMigrator.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
+import {IWETH} from "../src/interfaces/IWETH.sol";
 
 /// @notice Deploys the protocol from config/<CONFIG>.json behind a timelock: registry, factory, zap,
 ///         migrator and lens.
@@ -37,7 +38,9 @@ contract Deploy is Script {
         address[] memory tokens = vm.parseJsonAddressArray(json, ".stockTokens");
         address[] memory feeds = vm.parseJsonAddressArray(json, ".stockFeeds");
         address[] memory routers = vm.parseJsonAddressArray(json, ".routers");
+        IWETH weth = IWETH(vm.parseJsonAddress(json, ".weth"));
         require(tokens.length == feeds.length, "config/token-feed length");
+        require(address(weth) != address(0), "config/weth");
 
         vm.startBroadcast();
         address deployer = msg.sender;
@@ -48,7 +51,7 @@ contract Deploy is Script {
         _listInChunks(registry, tokens, feeds);
 
         BasketFactory factory = new BasketFactory(deployer, registry, treasury);
-        (d.zap, d.migrator) = _routing(deployer, factory, treasury, routers);
+        (d.zap, d.migrator) = _routing(deployer, factory, treasury, weth, routers);
 
         d.registry = address(registry);
         d.factory = address(factory);
@@ -56,7 +59,7 @@ contract Deploy is Script {
 
         registry.transferOwnership(d.timelock);
         factory.transferOwnership(d.timelock);
-        BasketZap(d.zap).transferOwnership(d.timelock);
+        BasketZap(payable(d.zap)).transferOwnership(d.timelock);
         BasketMigrator(d.migrator).transferOwnership(d.timelock);
         vm.stopBroadcast();
 
@@ -80,11 +83,12 @@ contract Deploy is Script {
 
     /// @dev The zap and the migrator start with the same router allow-list. Afterwards each list is governed
     ///      on its own, deliberately: the migrator's routers are a separate lever in the runbook.
-    function _routing(address deployer, BasketFactory factory, address treasury, address[] memory routers)
+    function _routing(address deployer, BasketFactory factory, address treasury, IWETH weth, address[] memory routers)
         private
         returns (address zap, address migrator)
     {
-        BasketZap z = new BasketZap(deployer, factory, treasury, uint16(vm.envOr("ZAP_FEE_BPS", uint256(20))));
+        uint16 feeBps = uint16(vm.envOr("ZAP_FEE_BPS", uint256(20)));
+        BasketZap z = new BasketZap(deployer, factory, treasury, feeBps, weth);
         BasketMigrator m = new BasketMigrator(deployer, factory);
         for (uint256 i; i < routers.length; ++i) {
             z.setRouter(routers[i], true);

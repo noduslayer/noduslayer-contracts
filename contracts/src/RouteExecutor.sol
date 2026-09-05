@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -43,8 +44,11 @@ abstract contract RouteExecutor is IRouteExecutor, Ownable2Step {
     ///      and covers only what this call produced of that token, so a route cannot spend a balance that
     ///      was already sitting here.
     function _execute(Swap[] calldata swaps, address[] memory tracked, uint256[] memory opening) internal {
+        // Zero means no approval is open yet; the first leg opens one.
+        // slither-disable-start uninitialized-local
         address openToken;
         address openRouter;
+        // slither-disable-end uninitialized-local
 
         for (uint256 i; i < swaps.length; ++i) {
             Swap calldata leg = swaps[i];
@@ -63,10 +67,21 @@ abstract contract RouteExecutor is IRouteExecutor, Ownable2Step {
                 if (leg.prefund > spendable) revert InsufficientConstituent(openToken, spendable, leg.prefund);
                 IERC20(openToken).safeTransfer(openRouter, leg.prefund);
             }
+            // A router's return data means nothing here; its effect is read from balances. Reverts bubble.
+            // slither-disable-next-line unused-return
             leg.router.functionCall(leg.data);
         }
 
         _closeApproval(openToken, openRouter);
+    }
+
+    /// @dev Spends an EIP-2612 signature to set this contract's allowance from the caller. Wrapped in
+    ///      try/catch on purpose: anyone who has seen a permit can submit it, so a signature front-run into
+    ///      an earlier block has already done its work, and reverting on the second use would let a stranger
+    ///      block the call. The transferFrom that follows enforces the allowance either way.
+    function _usePermit(address token, Permit calldata p) internal {
+        // slither-disable-next-line unused-return
+        try IERC20Permit(token).permit(msg.sender, address(this), p.value, p.deadline, p.v, p.r, p.s) {} catch {}
     }
 
     /// @dev The recipe tokens followed by `extra`, which is omitted when the recipe already contains it.
@@ -77,6 +92,7 @@ abstract contract RouteExecutor is IRouteExecutor, Ownable2Step {
         returns (address[] memory tokens)
     {
         address[] memory scratch = new address[](recipe.length + 1 + swaps.length);
+        // slither-disable-next-line uninitialized-local
         uint256 n;
         for (uint256 i; i < recipe.length; ++i) {
             n = _push(scratch, n, recipe[i].token);
@@ -126,7 +142,13 @@ abstract contract RouteExecutor is IRouteExecutor, Ownable2Step {
     }
 
     function _refundDelta(address[] memory tokens, uint256[] memory opening) internal {
+        _refundDelta(tokens, opening, address(0));
+    }
+
+    /// @dev Refunds every tracked surplus to the caller except `skip`, which the caller settles itself.
+    function _refundDelta(address[] memory tokens, uint256[] memory opening, address skip) internal {
         for (uint256 i; i < tokens.length; ++i) {
+            if (tokens[i] == skip) continue;
             uint256 surplus = _gained(tokens[i], opening[i]);
             if (surplus != 0) IERC20(tokens[i]).safeTransfer(msg.sender, surplus);
         }

@@ -23,6 +23,7 @@ import {IBasketToken} from "./interfaces/IBasketToken.sol";
 ///
 ///      It charges no fee of its own. The two baskets already take a redeem fee on the way out and a mint
 ///      fee on the way in; a third would tax holders for following a rebalance the protocol asked them to.
+///      Moving out of a retired basket is the expected use; moving into one is refused.
 contract BasketMigrator is IBasketMigrator, RouteExecutor, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -46,17 +47,48 @@ contract BasketMigrator is IBasketMigrator, RouteExecutor, Pausable, ReentrancyG
         address recipient,
         uint256 deadline
     ) external nonReentrant whenNotPaused returns (uint256 netShares) {
-        if (block.timestamp > deadline) revert Expired();
-        if (from == to) revert SameBasket(from);
-        if (!factory.isBasket(from)) revert UnknownBasket(from);
-        if (!factory.isBasket(to)) revert UnknownBasket(to);
-        if (shares == 0 || mintShares == 0) revert ZeroAmount();
-        if (recipient == address(0)) revert ZeroAddress();
+        _check(from, to, shares, mintShares, recipient, deadline);
+        return _migrate(from, to, shares, mintShares, minShares, swaps, recipient);
+    }
 
+    function migrateWithPermit(
+        address from,
+        address to,
+        uint256 shares,
+        uint256 mintShares,
+        uint256 minShares,
+        Swap[] calldata swaps,
+        address recipient,
+        uint256 deadline,
+        Permit calldata permit
+    ) external nonReentrant whenNotPaused returns (uint256 netShares) {
+        _check(from, to, shares, mintShares, recipient, deadline);
+        _usePermit(from, permit);
+        return _migrate(from, to, shares, mintShares, minShares, swaps, recipient);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    function _migrate(
+        address from,
+        address to,
+        uint256 shares,
+        uint256 mintShares,
+        uint256 minShares,
+        Swap[] calldata swaps,
+        address recipient
+    ) private returns (uint256 netShares) {
         address[] memory tracked = _trackedForPair(from, to, swaps);
         uint256[] memory opening = _snapshot(tracked);
 
         IERC20(from).safeTransferFrom(msg.sender, address(this), shares);
+        // slither-disable-next-line unused-return
         IBasketToken(from).redeem(shares, address(this));
 
         _execute(swaps, tracked, opening);
@@ -70,12 +102,17 @@ contract BasketMigrator is IBasketMigrator, RouteExecutor, Pausable, ReentrancyG
         emit Migrated(from, to, msg.sender, recipient, shares, netShares);
     }
 
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
+    function _check(address from, address to, uint256 shares, uint256 mintShares, address recipient, uint256 deadline)
+        private
+        view
+    {
+        if (block.timestamp > deadline) revert Expired();
+        if (from == to) revert SameBasket(from);
+        if (!factory.isBasket(from)) revert UnknownBasket(from);
+        if (!factory.isBasket(to)) revert UnknownBasket(to);
+        if (factory.isRetired(to)) revert BasketRetired(to);
+        if (shares == 0 || mintShares == 0) revert ZeroAmount();
+        if (recipient == address(0)) revert ZeroAddress();
     }
 
     /// @dev Both recipes plus every swap's sell token, deduplicated, so a constituent shared by the two
@@ -89,6 +126,7 @@ contract BasketMigrator is IBasketMigrator, RouteExecutor, Pausable, ReentrancyG
         IBasketToken.Constituent[] memory b = IBasketToken(to).constituents();
 
         address[] memory scratch = new address[](a.length + b.length + swaps.length);
+        // slither-disable-next-line uninitialized-local
         uint256 n;
         for (uint256 i; i < a.length; ++i) {
             n = _push(scratch, n, a[i].token);
@@ -110,6 +148,7 @@ contract BasketMigrator is IBasketMigrator, RouteExecutor, Pausable, ReentrancyG
     ///      it. Measured against `opening`, so a balance already sitting here cannot satisfy the mint.
     function _stage(address to, uint256 mintShares, address[] memory tracked, uint256[] memory opening) private {
         IBasketToken.Constituent[] memory recipe = IBasketToken(to).constituents();
+        // slither-disable-next-line unused-return
         (uint256[] memory amountsIn,) = IBasketToken(to).previewMint(mintShares);
 
         for (uint256 i; i < recipe.length; ++i) {

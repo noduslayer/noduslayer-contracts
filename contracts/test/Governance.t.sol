@@ -13,8 +13,10 @@ import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
 import {IRouteExecutor} from "../src/interfaces/IRouteExecutor.sol";
+import {IWETH} from "../src/interfaces/IWETH.sol";
 import {MockAggregator} from "./mocks/MockAggregator.sol";
 import {MockStockToken} from "./mocks/MockStockToken.sol";
+import {MockWETH} from "./mocks/MockWETH.sol";
 
 /// Exercises the governance path the deployment actually uses: a multisig proposes through a
 /// TimelockController, which owns the registry, factory and zap.
@@ -47,7 +49,7 @@ contract GovernanceTest is Test {
 
         registry = new StockRegistry(address(this));
         factory = new BasketFactory(address(this), registry, treasury);
-        zap = new BasketZap(address(this), factory, treasury, 20);
+        zap = new BasketZap(address(this), factory, treasury, 20, IWETH(address(new MockWETH())));
 
         registry.list(address(nvda), address(feed));
         registry.list(address(aapl), address(feed));
@@ -98,7 +100,7 @@ contract GovernanceTest is Test {
 
     function test_Timelock_ChangesBasketFeesAfterDelay() public {
         _acceptOwnership();
-        bytes memory call = abi.encodeCall(IBasketToken.setFees, (25, 25, treasury));
+        bytes memory call = abi.encodeCall(IBasketToken.setFees, (25, 25));
 
         vm.startPrank(multisig);
         timelock.schedule(address(basket), 0, call, bytes32(0), SALT, DELAY);
@@ -126,7 +128,7 @@ contract GovernanceTest is Test {
 
     function test_Timelock_CancelsAScheduledChange() public {
         _acceptOwnership();
-        bytes memory call = abi.encodeCall(IBasketToken.setFees, (100, 100, treasury));
+        bytes memory call = abi.encodeCall(IBasketToken.setFees, (100, 100));
 
         vm.startPrank(multisig);
         timelock.schedule(address(basket), 0, call, bytes32(0), SALT, DELAY);
@@ -145,7 +147,7 @@ contract GovernanceTest is Test {
 
         vm.expectRevert(IBasketToken.Unauthorized.selector);
         vm.prank(multisig);
-        basket.setFees(25, 25, treasury);
+        basket.setFees(25, 25);
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, multisig));
         vm.prank(multisig);

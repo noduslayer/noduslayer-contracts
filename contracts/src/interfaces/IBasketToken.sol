@@ -13,7 +13,7 @@ interface IBasketToken {
     event Redeemed(address indexed sender, address indexed to, uint256 shares, uint256 feeShares, uint256 skipMask);
     event ClaimRecorded(address indexed account, address indexed token, uint256 amount);
     event Claimed(address indexed account, address indexed token, address indexed to, uint256 amount);
-    event FeesUpdated(uint16 mintFeeBps, uint16 redeemFeeBps, address indexed feeRecipient);
+    event FeesUpdated(uint16 mintFeeBps, uint16 redeemFeeBps);
 
     error InvalidRecipe();
     error FeeTooHigh();
@@ -22,6 +22,7 @@ interface IBasketToken {
     error Unauthorized();
     error InvalidSkipMask();
     error NothingToClaim();
+    error Retired();
 
     function factory() external view returns (address);
 
@@ -29,6 +30,8 @@ interface IBasketToken {
 
     function redeemFeeBps() external view returns (uint16);
 
+    /// @notice Where fee shares go: the factory's treasury, read live so one governance action moves it
+    ///         for every basket.
     function feeRecipient() external view returns (address);
 
     function constituents() external view returns (Constituent[] memory);
@@ -49,7 +52,14 @@ interface IBasketToken {
 
     function redeemWithSkip(uint256 shares, address to, uint256 skipMask) external returns (uint256[] memory amountsOut);
 
+    /// @notice redeemWithSkip for a caller acting on someone's behalf: the paid legs go to `to`, the skipped
+    ///         legs are credited to `claimant`. The zap uses it so a route can sell the paid legs while the
+    ///         frozen one stays claimable by the holder, not by the zap.
+    function redeemWithSkipFor(uint256 shares, address to, address claimant, uint256 skipMask)
+        external
+        returns (uint256[] memory amountsOut);
+
     function claim(address token, address to) external returns (uint256 amount);
 
-    function setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_, address feeRecipient_) external;
+    function setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_) external;
 }

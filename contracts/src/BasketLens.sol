@@ -52,6 +52,7 @@ contract BasketLens {
         address feed = registry.feedOf(token);
         if (feed == address(0)) return (false, 0, 0);
 
+        // slither-disable-next-line unused-return
         (, int256 answer,, uint256 updated,) = AggregatorV3Interface(feed).latestRoundData();
         if (answer <= 0) revert InvalidPrice(token);
 

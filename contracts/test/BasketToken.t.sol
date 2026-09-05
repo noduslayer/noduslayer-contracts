@@ -28,8 +28,8 @@ contract BasketTokenTest is Test {
     function setUp() public {
         nvda = new MockStockToken("NVIDIA", "NVDA");
         aapl = new MockStockToken("Apple", "AAPL");
-        factory = new MockFactory(protocolOwner);
-        basket = factory.deploy("NodusLayer Tech", "TECH", _recipe(), MINT_FEE_BPS, REDEEM_FEE_BPS, treasury);
+        factory = new MockFactory(protocolOwner, treasury);
+        basket = factory.deploy("NodusLayer Tech", "TECH", _recipe(), MINT_FEE_BPS, REDEEM_FEE_BPS);
 
         nvda.mint(alice, 1000e18);
         aapl.mint(alice, 1000e18);
@@ -60,7 +60,7 @@ contract BasketTokenTest is Test {
         recipe[0] = IBasketToken.Constituent(address(nvda), NVDA_UNITS);
 
         vm.expectRevert(IBasketToken.InvalidRecipe.selector);
-        factory.deploy("x", "X", recipe, 0, 0, treasury);
+        factory.deploy("x", "X", recipe, 0, 0);
     }
 
     function test_RevertWhen_RecipeExceedsMaxConstituents() public {
@@ -70,7 +70,7 @@ contract BasketTokenTest is Test {
         }
 
         vm.expectRevert(IBasketToken.InvalidRecipe.selector);
-        factory.deploy("x", "X", recipe, 0, 0, treasury);
+        factory.deploy("x", "X", recipe, 0, 0);
     }
 
     function test_RevertWhen_RecipeHasZeroUnits() public {
@@ -78,7 +78,7 @@ contract BasketTokenTest is Test {
         recipe[1].units = 0;
 
         vm.expectRevert(IBasketToken.InvalidRecipe.selector);
-        factory.deploy("x", "X", recipe, 0, 0, treasury);
+        factory.deploy("x", "X", recipe, 0, 0);
     }
 
     function test_RevertWhen_RecipeHasDuplicateToken() public {
@@ -86,17 +86,47 @@ contract BasketTokenTest is Test {
         recipe[1].token = address(nvda);
 
         vm.expectRevert(IBasketToken.InvalidRecipe.selector);
-        factory.deploy("x", "X", recipe, 0, 0, treasury);
+        factory.deploy("x", "X", recipe, 0, 0);
     }
 
     function test_RevertWhen_FeeAboveCap() public {
         vm.expectRevert(IBasketToken.FeeTooHigh.selector);
-        factory.deploy("x", "X", _recipe(), 101, 0, treasury);
+        factory.deploy("x", "X", _recipe(), 101, 0);
     }
 
-    function test_RevertWhen_FeeRecipientIsZero() public {
-        vm.expectRevert(IBasketToken.ZeroAddress.selector);
-        factory.deploy("x", "X", _recipe(), 0, 0, address(0));
+    /// Fee shares go to the factory's treasury, read live, so moving it is one governance action rather
+    /// than one per basket.
+    function test_FeeRecipient_FollowsTheFactoryTreasury() public {
+        assertEq(basket.feeRecipient(), treasury);
+        factory.setTreasury(bob);
+        assertEq(basket.feeRecipient(), bob);
+
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+        assertEq(basket.balanceOf(bob), 0.01e18);
+        assertEq(basket.balanceOf(treasury), 0);
+    }
+
+    // ---------------------------------------------------------------- retirement
+
+    function test_RevertWhen_MintingARetiredBasket() public {
+        factory.setRetired(address(basket), true);
+
+        vm.expectRevert(IBasketToken.Retired.selector);
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+    }
+
+    /// Redemption is the one path that must survive everything, retirement included.
+    function test_Redeem_SurvivesRetirement() public {
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+        factory.setRetired(address(basket), true);
+
+        vm.prank(alice);
+        basket.redeem(5e18, bob);
+        assertEq(nvda.balanceOf(bob), 0.999e18);
+        assertEq(aapl.balanceOf(bob), 0.74925e18);
     }
 
     // ---------------------------------------------------------------- mint
@@ -268,30 +298,66 @@ contract BasketTokenTest is Test {
         basket.redeemWithSkip(5e18, bob, 1 << 2);
     }
 
+    /// A contract redeeming on a holder's behalf receives the paid legs itself and names the holder as the
+    /// claimant, so the frozen leg is owed to the person, not to the contract.
+    function test_RedeemWithSkipFor_CreditsTheClaimantNotTheRecipient() public {
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+        aapl.setPaused(true);
+
+        vm.expectEmit(address(basket));
+        emit IBasketToken.ClaimRecorded(alice, address(aapl), 0.74925e18);
+        vm.prank(alice);
+        uint256[] memory amountsOut = basket.redeemWithSkipFor(5e18, bob, alice, 1 << 1);
+
+        assertEq(amountsOut[1], 0.74925e18);
+        assertEq(nvda.balanceOf(bob), 0.999e18);
+        assertEq(basket.claimable(alice, address(aapl)), 0.74925e18);
+        assertEq(basket.claimable(bob, address(aapl)), 0);
+    }
+
+    function test_RevertWhen_RedeemWithSkipForNamesNoClaimant() public {
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+
+        vm.expectRevert(IBasketToken.ZeroAddress.selector);
+        vm.prank(alice);
+        basket.redeemWithSkipFor(5e18, bob, address(0), 1);
+    }
+
+    function test_RevertWhen_RedeemWithSkipForMaskExceedsRecipe() public {
+        vm.prank(alice);
+        basket.mint(10e18, alice);
+
+        vm.expectRevert(IBasketToken.InvalidSkipMask.selector);
+        vm.prank(alice);
+        basket.redeemWithSkipFor(5e18, bob, alice, 1 << 2);
+    }
+
     // ---------------------------------------------------------------- fees
 
     function test_SetFees_ByProtocolOwnerUpdatesValues() public {
         vm.expectEmit(address(basket));
-        emit IBasketToken.FeesUpdated(20, 30, bob);
+        emit IBasketToken.FeesUpdated(20, 30);
 
         vm.prank(protocolOwner);
-        basket.setFees(20, 30, bob);
+        basket.setFees(20, 30);
 
         assertEq(basket.mintFeeBps(), 20);
         assertEq(basket.redeemFeeBps(), 30);
-        assertEq(basket.feeRecipient(), bob);
+        assertEq(basket.feeRecipient(), treasury, "fees move, the recipient does not");
     }
 
     function test_RevertWhen_SetFeesByStranger() public {
         vm.expectRevert(IBasketToken.Unauthorized.selector);
         vm.prank(alice);
-        basket.setFees(20, 30, bob);
+        basket.setFees(20, 30);
     }
 
     function test_RevertWhen_SetFeesAboveCap() public {
         vm.expectRevert(IBasketToken.FeeTooHigh.selector);
         vm.prank(protocolOwner);
-        basket.setFees(0, 101, bob);
+        basket.setFees(0, 101);
     }
 
     // ---------------------------------------------------------------- remaining branches
@@ -305,7 +371,7 @@ contract BasketTokenTest is Test {
         recipe[0].token = address(0);
 
         vm.expectRevert(IBasketToken.InvalidRecipe.selector);
-        factory.deploy("x", "X", recipe, 0, 0, treasury);
+        factory.deploy("x", "X", recipe, 0, 0);
     }
 
     function test_RevertWhen_MintToZeroAddress() public {
@@ -331,7 +397,7 @@ contract BasketTokenTest is Test {
 
     function test_MintAndRedeem_WithZeroFeesMoveNoShareFees() public {
         vm.prank(protocolOwner);
-        basket.setFees(0, 0, treasury);
+        basket.setFees(0, 0);
 
         vm.startPrank(alice);
         uint256 netShares = basket.mint(10e18, alice);

@@ -13,9 +13,12 @@ interface IBasketFactory {
         uint16 mintFeeBps,
         uint16 redeemFeeBps
     );
+    event BasketRetired(address indexed basket, address indexed successor);
     event TreasuryUpdated(address indexed treasury);
 
     error TokenNotListed(address token);
+    error UnknownBasket(address basket);
+    error InvalidSuccessor(address successor);
     error ZeroAddress();
 
     function owner() external view returns (address);
@@ -26,6 +29,12 @@ interface IBasketFactory {
 
     function isBasket(address basket) external view returns (bool);
 
+    /// @notice A retired basket takes no new shares; redemption stays open forever.
+    function isRetired(address basket) external view returns (bool);
+
+    /// @notice The basket the protocol moved on to, if governance named one when retiring.
+    function successorOf(address basket) external view returns (address);
+
     function baskets() external view returns (address[] memory);
 
     function createBasket(
@@ -35,6 +44,8 @@ interface IBasketFactory {
         uint16 mintFeeBps,
         uint16 redeemFeeBps
     ) external returns (address basket);
+
+    function retire(address basket, address successor) external;
 
     function setTreasury(address treasury_) external;
 }

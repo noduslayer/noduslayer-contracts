@@ -86,14 +86,42 @@ contract BasketFactoryTest is Test {
         factory.createBasket("x", "X", _recipe(), 10, 10);
     }
 
-    function test_SetTreasury_AppliesToNewBaskets() public {
+    /// Baskets read the treasury from the factory, so one change moves every basket's fee recipient.
+    function test_SetTreasury_MovesEveryBasketsFeeRecipient() public {
         vm.startPrank(protocolOwner);
+        address existing = factory.createBasket("x", "X", _recipe(), 10, 10);
         factory.setTreasury(stranger);
-        address created = factory.createBasket("x", "X", _recipe(), 10, 10);
+        address created = factory.createBasket("y", "Y", _recipe(), 10, 10);
         vm.stopPrank();
 
         assertEq(factory.treasury(), stranger);
+        assertEq(BasketToken(existing).feeRecipient(), stranger);
         assertEq(BasketToken(created).feeRecipient(), stranger);
+    }
+
+    function test_Retire_MarksTheBasketAndItsSuccessor() public {
+        vm.startPrank(protocolOwner);
+        address old = factory.createBasket("x", "X", _recipe(), 10, 10);
+        address next = factory.createBasket("y", "Y", _recipe(), 10, 10);
+
+        vm.expectEmit(address(factory));
+        emit IBasketFactory.BasketRetired(old, next);
+        factory.retire(old, next);
+        vm.stopPrank();
+
+        assertTrue(factory.isRetired(old));
+        assertFalse(factory.isRetired(next));
+        assertEq(factory.successorOf(old), next);
+        assertTrue(factory.isBasket(old), "a retired basket is still an official basket");
+    }
+
+    function test_RevertWhen_RetireByStranger() public {
+        vm.prank(protocolOwner);
+        address basket = factory.createBasket("x", "X", _recipe(), 10, 10);
+
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger));
+        vm.prank(stranger);
+        factory.retire(basket, address(0));
     }
 
     function test_RevertWhen_SetTreasuryToZero() public {
@@ -107,12 +135,12 @@ contract BasketFactoryTest is Test {
         BasketToken basket = BasketToken(factory.createBasket("x", "X", _recipe(), 10, 10));
 
         vm.prank(protocolOwner);
-        basket.setFees(25, 25, stranger);
+        basket.setFees(25, 25);
         assertEq(basket.mintFeeBps(), 25);
 
         vm.expectRevert(IBasketToken.Unauthorized.selector);
         vm.prank(stranger);
-        basket.setFees(0, 0, stranger);
+        basket.setFees(0, 0);
     }
 
     function test_RevertWhen_ConstructedWithoutRegistry() public {

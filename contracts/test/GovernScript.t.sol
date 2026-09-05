@@ -10,12 +10,14 @@ import {BasketToken} from "../src/BasketToken.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
+import {IWETH} from "../src/interfaces/IWETH.sol";
 import {CreateBasket} from "../script/CreateBasket.s.sol";
 import {Govern} from "../script/Govern.s.sol";
 import {TimelockAccept} from "../script/TimelockAccept.s.sol";
 import {TimelockScript} from "../script/TimelockScript.sol";
 import {MockAggregator} from "./mocks/MockAggregator.sol";
 import {MockStockToken} from "./mocks/MockStockToken.sol";
+import {MockWETH} from "./mocks/MockWETH.sol";
 
 /// Runs the governance scripts themselves, end to end, against a timelock whose proposer is the address
 /// Foundry broadcasts from inside a test. A script nobody has executed is a guess about the runbook.
@@ -61,7 +63,7 @@ contract GovernScriptTest is Test {
         registry.list(address(nvda), address(nvdaFeed));
         registry.list(address(aapl), address(aaplFeed));
         factory = new BasketFactory(address(timelock), registry, treasury);
-        zap = new BasketZap(address(timelock), factory, treasury, 20);
+        zap = new BasketZap(address(timelock), factory, treasury, 20, IWETH(address(new MockWETH())));
     }
 
     // ---------------------------------------------------------------- Govern
@@ -185,7 +187,7 @@ contract GovernScriptTest is Test {
     function test_TimelockAccept_TakesOwnershipThroughTheFile() public {
         StockRegistry r = new StockRegistry(address(this));
         BasketFactory f = new BasketFactory(address(this), r, treasury);
-        BasketZap z = new BasketZap(address(this), f, treasury, 20);
+        BasketZap z = new BasketZap(address(this), f, treasury, 20, IWETH(address(new MockWETH())));
         BasketMigrator m = new BasketMigrator(address(this), f);
         r.transferOwnership(address(timelock));
         f.transferOwnership(address(timelock));
@@ -287,7 +289,7 @@ contract GovernScriptTest is Test {
         r.transferOwnership(address(timelock));
         BasketFactory f = new BasketFactory(address(this), r, treasury);
         f.transferOwnership(address(timelock));
-        BasketZap z = new BasketZap(address(this), f, treasury, 20);
+        BasketZap z = new BasketZap(address(this), f, treasury, 20, IWETH(address(new MockWETH())));
         z.transferOwnership(address(timelock));
         BasketMigrator m = new BasketMigrator(address(this), f);
         m.transferOwnership(address(timelock));

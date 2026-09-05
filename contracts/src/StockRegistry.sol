@@ -76,6 +76,7 @@ contract StockRegistry is IStockRegistry, Ownable2Step {
     function _setFeed(address token, address feed) private {
         if (feed != address(0)) {
             if (feed.code.length == 0) revert InvalidFeed(feed);
+            // slither-disable-next-line unused-return
             try AggregatorV3Interface(feed).decimals() returns (uint8) {}
             catch {
                 revert InvalidFeed(feed);
@@ -86,6 +87,7 @@ contract StockRegistry is IStockRegistry, Ownable2Step {
 
     function _requireToken(address token) private view {
         if (token.code.length == 0) revert InvalidToken(token);
+        // slither-disable-next-line unused-return
         try IERC20Metadata(token).decimals() returns (uint8) {}
         catch {
             revert InvalidToken(token);

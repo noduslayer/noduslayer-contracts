@@ -32,6 +32,18 @@ interface IBasketMigrator is IRouteExecutor {
         uint256 deadline
     ) external returns (uint256 netShares);
 
+    function migrateWithPermit(
+        address from,
+        address to,
+        uint256 shares,
+        uint256 mintShares,
+        uint256 minShares,
+        Swap[] calldata swaps,
+        address recipient,
+        uint256 deadline,
+        Permit calldata permit
+    ) external returns (uint256 netShares);
+
     function pause() external;
 
     function unpause() external;

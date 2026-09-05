@@ -16,6 +16,18 @@ interface IRouteExecutor {
         bytes data;
     }
 
+    /// @notice An EIP-2612 signature granting this contract an allowance, so approve and act fit in one
+    ///         transaction.
+    /// @param value    Allowance the signature grants; at least what the call will pull.
+    /// @param deadline Signature deadline, as EIP-2612 defines it.
+    struct Permit {
+        uint256 value;
+        uint256 deadline;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
+
     event RouterUpdated(address indexed router, bool allowed);
     event Swept(address indexed token, address indexed to, uint256 amount);
 
@@ -23,6 +35,7 @@ interface IRouteExecutor {
     error RouterNotAllowed(address router);
     error InsufficientConstituent(address token, uint256 have, uint256 need);
     error UntrackedToken(address token);
+    error BasketRetired(address basket);
     error ZeroAddress();
     error ZeroAmount();
 

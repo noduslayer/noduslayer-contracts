@@ -16,8 +16,10 @@ import {IBasketToken} from "./interfaces/IBasketToken.sol";
 ///         in kind against exact constituent amounts; the vault never trades and has no owner.
 /// @dev Mint rounds constituent amounts up and redeem rounds them down, so for every constituent
 ///      `balance * 1e18 >= totalSupply * units + totalClaimable * 1e18` holds at all times.
-///      Fees are settled in shares and therefore stay backed. Redeem can never be paused; if the issuer
-///      freezes a constituent, holders exit the rest via `redeemWithSkip` and collect the frozen leg later.
+///      Fees are settled in shares and therefore stay backed; they go to the factory's treasury, read live,
+///      so moving the treasury is one governance action rather than one per basket. Redeem can never be
+///      paused and survives the basket's retirement; if the issuer freezes a constituent, holders exit the
+///      rest via `redeemWithSkip` and collect the frozen leg later.
 contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -33,7 +35,6 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
 
     uint16 public mintFeeBps;
     uint16 public redeemFeeBps;
-    address public feeRecipient;
 
     Constituent[] private _constituents;
 
@@ -50,8 +51,7 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
         string memory symbol_,
         Constituent[] memory recipe,
         uint16 mintFeeBps_,
-        uint16 redeemFeeBps_,
-        address feeRecipient_
+        uint16 redeemFeeBps_
     ) ERC20(name_, symbol_) ERC20Permit(name_) {
         uint256 n = recipe.length;
         if (n < MIN_CONSTITUENTS || n > MAX_CONSTITUENTS) revert InvalidRecipe();
@@ -63,7 +63,7 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
             _constituents.push(recipe[i]);
         }
         factory = msg.sender;
-        _setFees(mintFeeBps_, redeemFeeBps_, feeRecipient_);
+        _setFees(mintFeeBps_, redeemFeeBps_);
     }
 
     // ------------------------------------------------------------------ mint / redeem
@@ -71,6 +71,7 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
     function mint(uint256 shares, address to) external nonReentrant returns (uint256 netShares) {
         if (shares == 0) revert ZeroShares();
         if (to == address(0)) revert ZeroAddress();
+        if (IBasketFactory(factory).isRetired(address(this))) revert Retired();
 
         uint256 n = _constituents.length;
         for (uint256 i; i < n; ++i) {
@@ -81,13 +82,13 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
         uint256 feeShares = shares * mintFeeBps / BPS;
         netShares = shares - feeShares;
         _mint(to, netShares);
-        if (feeShares != 0) _mint(feeRecipient, feeShares);
+        if (feeShares != 0) _mint(feeRecipient(), feeShares);
 
         emit Minted(msg.sender, to, shares, feeShares);
     }
 
     function redeem(uint256 shares, address to) external nonReentrant returns (uint256[] memory amountsOut) {
-        return _redeem(shares, to, 0);
+        return _redeem(shares, to, to, 0);
     }
 
     function redeemWithSkip(uint256 shares, address to, uint256 skipMask)
@@ -96,7 +97,16 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
         returns (uint256[] memory amountsOut)
     {
         if (skipMask >> _constituents.length != 0) revert InvalidSkipMask();
-        return _redeem(shares, to, skipMask);
+        return _redeem(shares, to, to, skipMask);
+    }
+
+    function redeemWithSkipFor(uint256 shares, address to, address claimant, uint256 skipMask)
+        external
+        nonReentrant
+        returns (uint256[] memory amountsOut)
+    {
+        if (skipMask >> _constituents.length != 0) revert InvalidSkipMask();
+        return _redeem(shares, to, claimant, skipMask);
     }
 
     function claim(address token, address to) external nonReentrant returns (uint256 amount) {
@@ -113,11 +123,15 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
 
     // ------------------------------------------------------------------ fees
 
-    function setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_, address feeRecipient_) external onlyProtocol {
-        _setFees(mintFeeBps_, redeemFeeBps_, feeRecipient_);
+    function setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_) external onlyProtocol {
+        _setFees(mintFeeBps_, redeemFeeBps_);
     }
 
     // ------------------------------------------------------------------ views
+
+    function feeRecipient() public view returns (address) {
+        return IBasketFactory(factory).treasury();
+    }
 
     function constituents() external view returns (Constituent[] memory) {
         return _constituents;
@@ -139,13 +153,16 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
 
     // ------------------------------------------------------------------ internals
 
-    function _redeem(uint256 shares, address to, uint256 skipMask) private returns (uint256[] memory amountsOut) {
+    function _redeem(uint256 shares, address to, address claimant, uint256 skipMask)
+        private
+        returns (uint256[] memory amountsOut)
+    {
         if (shares == 0) revert ZeroShares();
-        if (to == address(0)) revert ZeroAddress();
+        if (to == address(0) || claimant == address(0)) revert ZeroAddress();
 
         uint256 feeShares = shares * redeemFeeBps / BPS;
         uint256 netShares = shares - feeShares;
-        if (feeShares != 0) _transfer(msg.sender, feeRecipient, feeShares);
+        if (feeShares != 0) _transfer(msg.sender, feeRecipient(), feeShares);
         _burn(msg.sender, netShares);
 
         uint256 n = _constituents.length;
@@ -155,9 +172,9 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
             amountsOut[i] = amount;
             if (amount != 0 && _skipped(skipMask, i)) {
                 address token = _constituents[i].token;
-                claimable[to][token] += amount;
+                claimable[claimant][token] += amount;
                 totalClaimable[token] += amount;
-                emit ClaimRecorded(to, token, amount);
+                emit ClaimRecorded(claimant, token, amount);
             }
         }
         emit Redeemed(msg.sender, to, shares, feeShares, skipMask);
@@ -185,12 +202,10 @@ contract BasketToken is IBasketToken, ERC20Permit, ReentrancyGuard {
         if (msg.sender != IBasketFactory(factory).owner()) revert Unauthorized();
     }
 
-    function _setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_, address feeRecipient_) private {
+    function _setFees(uint16 mintFeeBps_, uint16 redeemFeeBps_) private {
         if (mintFeeBps_ > MAX_FEE_BPS || redeemFeeBps_ > MAX_FEE_BPS) revert FeeTooHigh();
-        if (feeRecipient_ == address(0)) revert ZeroAddress();
         mintFeeBps = mintFeeBps_;
         redeemFeeBps = redeemFeeBps_;
-        feeRecipient = feeRecipient_;
-        emit FeesUpdated(mintFeeBps_, redeemFeeBps_, feeRecipient_);
+        emit FeesUpdated(mintFeeBps_, redeemFeeBps_);
     }
 }

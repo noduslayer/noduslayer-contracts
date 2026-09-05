@@ -13,6 +13,7 @@ import {BasketZap} from "../../src/BasketZap.sol";
 import {StockRegistry} from "../../src/StockRegistry.sol";
 import {IBasketToken} from "../../src/interfaces/IBasketToken.sol";
 import {IRouteExecutor} from "../../src/interfaces/IRouteExecutor.sol";
+import {IWETH} from "../../src/interfaces/IWETH.sol";
 
 interface IV3SwapRouter {
     struct ExactInputSingleParams {
@@ -86,7 +87,7 @@ contract RobinhoodMainnetForkTest is Test {
 
         registry = new StockRegistry(protocolOwner);
         factory = new BasketFactory(protocolOwner, registry, treasury);
-        zap = new BasketZap(protocolOwner, factory, treasury, 20);
+        zap = new BasketZap(protocolOwner, factory, treasury, 20, IWETH(vm.parseJsonAddress(json, ".weth")));
         lens = new BasketLens(registry);
 
         vm.startPrank(protocolOwner);

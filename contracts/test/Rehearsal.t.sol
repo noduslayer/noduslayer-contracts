@@ -12,7 +12,8 @@ import {BasketToken} from "../src/BasketToken.sol";
 import {BasketZap} from "../src/BasketZap.sol";
 import {StockRegistry} from "../src/StockRegistry.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
-import {RehearsalFeed, RehearsalToken} from "../script/RehearsalFixture.s.sol";
+import {IWETH} from "../src/interfaces/IWETH.sol";
+import {RehearsalFeed, RehearsalToken, RehearsalWETH} from "../script/RehearsalFixture.s.sol";
 
 /// Walks the sequence docs/runbook.md prescribes, in order, against the rehearsal fixture contracts.
 ///
@@ -129,7 +130,7 @@ contract RehearsalTest is Test {
         registry.listMany(addrs, fs);
 
         factory = new BasketFactory(deployer, registry, treasury);
-        zap = new BasketZap(deployer, factory, treasury, 20);
+        zap = new BasketZap(deployer, factory, treasury, 20, IWETH(address(new RehearsalWETH())));
         migrator = new BasketMigrator(deployer, factory);
         lens = new BasketLens(registry);
 

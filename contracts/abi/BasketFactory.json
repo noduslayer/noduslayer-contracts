@@ -112,6 +112,25 @@
   },
   {
     "type": "function",
+    "name": "isRetired",
+    "inputs": [
+      {
+        "name": "basket",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -158,6 +177,24 @@
   },
   {
     "type": "function",
+    "name": "retire",
+    "inputs": [
+      {
+        "name": "basket",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "successor",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setTreasury",
     "inputs": [
       {
@@ -168,6 +205,25 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "successorOf",
+    "inputs": [
+      {
+        "name": "basket",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -252,6 +308,25 @@
   },
   {
     "type": "event",
+    "name": "BasketRetired",
+    "inputs": [
+      {
+        "name": "basket",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "successor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "OwnershipTransferStarted",
     "inputs": [
       {
@@ -303,6 +378,17 @@
   },
   {
     "type": "error",
+    "name": "InvalidSuccessor",
+    "inputs": [
+      {
+        "name": "successor",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "OwnableInvalidOwner",
     "inputs": [
       {
@@ -329,6 +415,17 @@
     "inputs": [
       {
         "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UnknownBasket",
+    "inputs": [
+      {
+        "name": "basket",
         "type": "address",
         "internalType": "address"
       }

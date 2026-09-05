@@ -14,6 +14,26 @@ contract RehearsalToken is ERC20 {
     }
 }
 
+/// @notice A stand-in for WETH9 with the two functions the zap calls, so `zapMintETH` can be rehearsed.
+/// @dev Never deploy this to mainnet, where the canonical WETH is in the chain config.
+contract RehearsalWETH is ERC20 {
+    constructor() ERC20("Rehearsal Wrapped Ether", "WETH") {}
+
+    receive() external payable {
+        deposit();
+    }
+
+    function deposit() public payable {
+        _mint(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+        (bool ok,) = msg.sender.call{value: amount}("");
+        require(ok, "RehearsalWETH: ether transfer failed");
+    }
+}
+
 /// @notice A stand-in Chainlink feed with a fixed answer, refreshed to now on every deployment.
 /// @dev Never deploy this to mainnet. `set` is unguarded so a rehearsal can move a price.
 contract RehearsalFeed {
@@ -89,7 +109,7 @@ contract RehearsalFixture is Script {
             feeds[i] = address(new RehearsalFeed(assets[i].priceUsd8));
         }
         address usdg = address(new RehearsalToken("Rehearsal Global Dollar", "USDG"));
-        address weth = address(new RehearsalToken("Rehearsal Wrapped Ether", "WETH"));
+        address weth = address(new RehearsalWETH());
         vm.stopBroadcast();
 
         _writeConfig(assets, tokens, feeds, usdg, weth);

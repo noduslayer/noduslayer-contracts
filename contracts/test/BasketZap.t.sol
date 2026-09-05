@@ -13,10 +13,12 @@ import {IBasketFactory} from "../src/interfaces/IBasketFactory.sol";
 import {IBasketToken} from "../src/interfaces/IBasketToken.sol";
 import {IBasketZap} from "../src/interfaces/IBasketZap.sol";
 import {IRouteExecutor} from "../src/interfaces/IRouteExecutor.sol";
+import {IWETH} from "../src/interfaces/IWETH.sol";
 import {MockAggregator} from "./mocks/MockAggregator.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockRouter} from "./mocks/MockRouter.sol";
 import {MockStockToken} from "./mocks/MockStockToken.sol";
+import {MockWETH} from "./mocks/MockWETH.sol";
 
 contract BasketZapTest is Test {
     uint16 internal constant ZAP_FEE_BPS = 20;
@@ -45,7 +47,7 @@ contract BasketZapTest is Test {
 
         registry = new StockRegistry(protocolOwner);
         factory = new BasketFactory(protocolOwner, registry, treasury);
-        zap = new BasketZap(protocolOwner, factory, treasury, ZAP_FEE_BPS);
+        zap = new BasketZap(protocolOwner, factory, treasury, ZAP_FEE_BPS, IWETH(address(new MockWETH())));
 
         router = new MockRouter();
         router.setPrice(address(nvda), NVDA_PRICE);
@@ -78,14 +80,14 @@ contract BasketZapTest is Test {
         assertEq(netShares, 9.99e18);
         assertEq(basket.balanceOf(bob), 9.99e18);
         assertEq(basket.balanceOf(treasury), 0.01e18);
-        assertEq(usdg.balanceOf(treasury), 2e6);
-        assertEq(usdg.balanceOf(alice), 9046e6);
+        assertEq(usdg.balanceOf(treasury), 1_904_000, "20 bps of the 952 USDG spent");
+        assertEq(usdg.balanceOf(alice), 9_046_096_000, "the unspent 48 USDG come back untaxed");
         _assertZapEmpty();
     }
 
     function test_ZapMint_EmitsZapMinted() public {
         vm.expectEmit(address(zap));
-        emit IBasketZap.ZapMinted(address(basket), alice, bob, address(usdg), 1000e6, 10e18, 9.99e18, 2e6);
+        emit IBasketZap.ZapMinted(address(basket), alice, bob, address(usdg), 1000e6, 10e18, 9.99e18, 1_904_000);
 
         vm.prank(alice);
         zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, _mintSwaps(2e18, 1.5e18), bob, block.timestamp);
@@ -96,7 +98,7 @@ contract BasketZapTest is Test {
         zap.zapMint(address(basket), address(usdg), 1200e6, 10e18, _mintSwaps(2.5e18, 1.5e18), bob, block.timestamp);
 
         assertEq(nvda.balanceOf(alice), 0.5e18);
-        assertEq(usdg.balanceOf(alice), 8930.6e6);
+        assertEq(usdg.balanceOf(alice), 8_930_866_000);
         _assertZapEmpty();
     }
 
@@ -185,7 +187,7 @@ contract BasketZapTest is Test {
 
         assertEq(amountOut, 474_572_952);
         assertEq(usdg.balanceOf(bob), 474_572_952);
-        assertEq(usdg.balanceOf(treasury), 2e6 + 951_048);
+        assertEq(usdg.balanceOf(treasury), 1_904_000 + 951_048);
         assertEq(basket.balanceOf(alice), 4.99e18);
         assertEq(basket.balanceOf(treasury), 0.015e18);
         _assertZapEmpty();
@@ -273,6 +275,27 @@ contract BasketZapTest is Test {
         zap.sweep(address(usdg), alice);
     }
 
+    /// Ether cannot be sent here by a call — `receive` refuses everyone but WETH — but a contract created and
+    /// destroyed in one transaction can still force it in. The owner recovers it the way it recovers tokens.
+    function test_SweepEther_SendsForcedEther() public {
+        vm.deal(address(zap), 1 ether);
+
+        vm.expectEmit(address(zap));
+        emit IBasketZap.SweptEther(bob, 1 ether);
+        vm.prank(protocolOwner);
+        zap.sweepEther(bob);
+        assertEq(bob.balance, 1 ether);
+        assertEq(address(zap).balance, 0);
+
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
+        vm.prank(alice);
+        zap.sweepEther(alice);
+
+        vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
+        vm.prank(protocolOwner);
+        zap.sweepEther(address(0));
+    }
+
     // ---------------------------------------------------------------- remaining branches
 
     function test_RevertWhen_ZapMintZeroInput() public {
@@ -320,7 +343,7 @@ contract BasketZapTest is Test {
         uint256 netShares = zap.zapMint(address(basket), address(usdg), 1000e6, 10e18, swaps, bob, block.timestamp);
 
         assertEq(netShares, 9.99e18);
-        assertEq(usdg.balanceOf(alice), 9046e6);
+        assertEq(usdg.balanceOf(alice), 9_046_096_000);
         _assertZapEmpty();
     }
 
@@ -363,8 +386,9 @@ contract BasketZapTest is Test {
     }
 
     function test_RevertWhen_ConstructedWithoutFactory() public {
+        IWETH weth = IWETH(address(new MockWETH()));
         vm.expectRevert(IRouteExecutor.ZeroAddress.selector);
-        new BasketZap(protocolOwner, IBasketFactory(address(0)), treasury, 20);
+        new BasketZap(protocolOwner, IBasketFactory(address(0)), treasury, 20, weth);
     }
 
     // ---------------------------------------------------------------- multi-leg execution
@@ -479,7 +503,7 @@ contract BasketZapTest is Test {
         // Alice gets back her own surplus and unspent input, never the pre-existing balances.
         assertEq(nvda.balanceOf(alice), 0.2e18);
         assertEq(aapl.balanceOf(alice), 0.05e18);
-        assertEq(usdg.balanceOf(alice), 9000e6 + 78_800_000);
+        assertEq(usdg.balanceOf(alice), 9000e6 + 78_961_600);
         assertEq(usdg.balanceOf(address(zap)), 500e6, "stranded input untouched");
         assertEq(nvda.balanceOf(address(zap)), 3e18, "stranded constituent untouched");
     }

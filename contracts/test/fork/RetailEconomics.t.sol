@@ -11,6 +11,7 @@ import {BasketZap} from "../../src/BasketZap.sol";
 import {StockRegistry} from "../../src/StockRegistry.sol";
 import {IBasketToken} from "../../src/interfaces/IBasketToken.sol";
 import {IRouteExecutor} from "../../src/interfaces/IRouteExecutor.sol";
+import {IWETH} from "../../src/interfaces/IWETH.sol";
 
 interface IV3SwapRouter {
     struct ExactOutputSingleParams {
@@ -64,7 +65,7 @@ contract RetailEconomicsForkTest is Test {
 
         registry = new StockRegistry(owner);
         factory = new BasketFactory(owner, registry, treasury);
-        zap = new BasketZap(owner, factory, treasury, 20);
+        zap = new BasketZap(owner, factory, treasury, 20, IWETH(vm.parseJsonAddress(j, ".weth")));
 
         IBasketToken.Constituent[] memory recipe = new IBasketToken.Constituent[](want.length);
         uint256[4] memory units = [uint256(0.1303e18), 0.0764e18, 0.0731e18, 0.0393e18];
