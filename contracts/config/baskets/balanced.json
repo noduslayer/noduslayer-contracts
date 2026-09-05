@@ -1,0 +1,21 @@
+{
+  "name": "NodusLayer Balanced",
+  "symbol": "BAL",
+  "theme": "Allocation and defensive",
+  "description": "Broad equities and short-term Treasuries with a growth sleeve in NVDA and a silver hedge.",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "SPY",
+    "SGOV",
+    "NVDA",
+    "SLV"
+  ],
+  "weightsBps": [
+    4000,
+    3000,
+    2000,
+    1000
+  ]
+}

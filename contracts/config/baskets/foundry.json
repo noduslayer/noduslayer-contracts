@@ -1,0 +1,19 @@
+{
+  "name": "NodusLayer Foundry",
+  "symbol": "FNDRY",
+  "theme": "AI and semiconductors",
+  "description": "Chip fabrication and the equipment it depends on.",
+  "mintFeeBps": 10,
+  "redeemFeeBps": 10,
+  "navPerShareUsd": 100,
+  "symbols": [
+    "TSM",
+    "ASML",
+    "INTC"
+  ],
+  "weightsBps": [
+    5000,
+    3000,
+    2000
+  ]
+}
