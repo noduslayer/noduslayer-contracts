@@ -66,15 +66,16 @@ CHAIN=$(cast chain-id --rpc-url "$RPC")
 [ "$CHAIN" = 4663 ] || { echo "node reports chain $CHAIN, want 4663 (a fork keeps mainnet's id)" >&2; exit 1; }
 
 run() { # forge script from the deployer, broadcasting; everything to the log
-  forge script "$@" --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast -vv 2>&1 | tee -a "$LOG"
+  forge script "$@" --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast -vv >> "$LOG" 2>&1
 }
 addr_of() { grep -E "^\s*$1\s+0x[0-9a-fA-F]{40}\s*$" "$LOG" | tail -1 | grep -oE '0x[0-9a-fA-F]{40}'; }
-# The operation id is the script's return value; forge prints it under "== Return ==".
-op_id() { awk '/== Return ==/{f=1} f && /bytes32/ {print $NF; exit}'; }
+# The operation id is the script's return value; forge prints it under "== Return ==". The last one in the
+# log is the run that just finished.
+op_id() { awk '/== Return ==/{f=1; next} f && /bytes32/ {id=$NF; f=0} END{print id}' "$LOG"; }
 
 echo "deploying"
 MULTISIG=$DEPLOYER TREASURY=$TREASURY TIMELOCK_MIN_DELAY=0 CONFIG=robinhood-mainnet \
-  run script/Deploy.s.sol >/dev/null
+  run script/Deploy.s.sol
 TIMELOCK=$(addr_of TimelockController); REGISTRY=$(addr_of StockRegistry); FACTORY=$(addr_of BasketFactory)
 ZAP=$(addr_of BasketZap); MIGRATOR=$(addr_of BasketMigrator); LENS=$(addr_of BasketLens)
 for v in TIMELOCK REGISTRY FACTORY ZAP MIGRATOR LENS; do
@@ -83,16 +84,18 @@ done
 export TIMELOCK REGISTRY FACTORY ZAP MIGRATOR
 
 echo "accepting ownership through the timelock"
-OP=$(MODE=schedule LABEL="devnet accept" run script/TimelockAccept.s.sol | op_id)
+MODE=schedule LABEL="devnet accept" run script/TimelockAccept.s.sol
+OP=$(op_id)
 [ -n "$OP" ] || { echo "no operation id from TimelockAccept; see $LOG" >&2; exit 1; }
-MODE=execute OP=$OP run script/TimelockAccept.s.sol >/dev/null
+MODE=execute OP=$OP run script/TimelockAccept.s.sol
 [ "$(cast call "$FACTORY" 'owner()(address)' --rpc-url "$RPC")" = "$(cast to-check-sum-address "$TIMELOCK")" ] \
   || { echo "the timelock did not take ownership" >&2; exit 1; }
 
 echo "creating baskets: $BASKETS"
-OP=$(MODE=schedule LABEL="devnet baskets" BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol | op_id)
+MODE=schedule LABEL="devnet baskets" BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol
+OP=$(op_id)
 [ -n "$OP" ] || { echo "no operation id from CreateBasket; see $LOG" >&2; exit 1; }
-MODE=execute OP=$OP BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol >/dev/null
+MODE=execute OP=$OP BASKETS=$BASKETS CONFIG=robinhood-mainnet run script/CreateBasket.s.sol
 BASKET_LIST=$(cast call "$FACTORY" 'baskets()(address[])' --rpc-url "$RPC" | tr -d '[] ' )
 [ -n "$BASKET_LIST" ] || { echo "the factory lists no baskets" >&2; exit 1; }
 
