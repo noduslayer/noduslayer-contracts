@@ -109,6 +109,23 @@ cast rpc anvil_setBalance "$PM" 0x56BC75E2D63100000 --rpc-url "$RPC" >/dev/null
 cast send "$USDG" 'transfer(address,uint256)' "$USER" 50000000000 --from "$PM" --unlocked --rpc-url "$RPC" >/dev/null
 cast rpc anvil_stopImpersonatingAccount "$PM" --rpc-url "$RPC" >/dev/null
 
+# A fresh fork fetches every storage slot a quote simulation touches from mainnet the first time; probing
+# each constituent's pools once here means the first quote the quoter serves is not the one that pays.
+echo "warming the fork's pool state"
+QUOTER_V2=$(jq -r .uniswap.quoterV2 config/robinhood-mainnet.json)
+for b in ${BASKET_LIST//,/ }; do
+  for token in $(cast call "$b" 'constituents()((address,uint256)[])' --rpc-url "$RPC" | grep -oE '0x[0-9a-fA-F]{40}'); do
+    for tier in 500 3000; do
+      cast call "$QUOTER_V2" 'quoteExactOutputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
+        "($USDG,$token,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
+      cast call "$QUOTER_V2" 'quoteExactInputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
+        "($token,$USDG,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
+      cast call "$QUOTER_V2" 'quoteExactOutputSingle((address,address,uint256,uint24,uint160))(uint256,uint160,uint32,uint256)' \
+        "($WETH,$token,100000000000000000,$tier,0)" --rpc-url "$RPC" >/dev/null 2>&1 || true
+    done
+  done
+done
+
 cat > "$OUT" <<ENV
 # Written by script/devnet.sh. A local fork of Robinhood Chain; every address below is local to it.
 DEVNET_RPC=$RPC
@@ -132,6 +149,8 @@ QUOTER_CORS_ORIGINS=http://localhost:3000
 QUOTER_BLOCKED_COUNTRIES=
 QUOTER_NAV_INTERVAL=30s
 QUOTER_INDEX_INTERVAL=5s
+QUOTER_RPC_TIMEOUT=120s
+QUOTER_HTTP_WRITE_TIMEOUT=180s
 ENV
 
 echo
