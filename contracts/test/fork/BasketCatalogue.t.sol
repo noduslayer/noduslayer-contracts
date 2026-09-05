@@ -94,7 +94,7 @@ contract BasketCatalogueForkTest is Test {
         console2.log("curated baskets deployed", built);
         console2.log("thinnest capacity (USD) ", worstCapacity);
         console2.log("held by                 ", worst);
-        assertEq(built, 20);
+        assertEq(built, 30);
         assertGt(worstCapacity, 5000);
     }
 
