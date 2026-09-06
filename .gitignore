@@ -24,3 +24,4 @@ contracts/governance/ops-devnet/
 contracts/config/robinhood-devnet.json
 contracts/.testnet.env
 contracts/.testnet.log
+contracts/.testnet-*.log
