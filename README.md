@@ -40,7 +40,7 @@ the old basket is retired: closed to new shares, open for every exit, pointing a
 
 - [`docs/design.md`](docs/design.md) — architecture, invariants, fee model, threat model
 - [`docs/runbook.md`](docs/runbook.md) — deployment, governance and incident response
-- [`docs/baskets.md`](docs/baskets.md) — the 30 curated baskets and the depth caps that shaped them
+- [`docs/baskets.md`](docs/baskets.md) — the 15 curated baskets and the depth caps that shaped them
 - [`docs/stock-universe.md`](docs/stock-universe.md) — all 194 constituents with measured liquidity
 - [`docs/deployments.md`](docs/deployments.md) — deployed addresses
 - [`docs/audit/`](docs/audit) — internal review, Slither and Aderyn output
