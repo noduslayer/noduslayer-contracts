@@ -74,6 +74,14 @@ Fork tests run against Robinhood Chain mainnet. They cover in-kind mint and rede
 routing through Uniswap v3, retail gas cost, listing the full universe, and deploying every basket in the
 catalogue with live Chainlink prices.
 
+`script/testnet.sh` deploys the whole protocol to Robinhood Chain testnet (46630) the way mainnet will be
+deployed, with `CONFIG=robinhood-testnet`. Testnet mirrors nothing of mainnet, so the script first stands
+up a market of its own — `script/TestnetFixture.s.sol` deploys Uniswap v3 from the published bytecode
+under `script/artifacts/`, stand-in stock tokens and feeds priced from mainnet, a USDG and a WETH, and deep
+pools — then runs Deploy, the timelock hand-over and CreateBasket against it. The deployer key is read from
+`../.env` (`PK`) and never printed; the addresses land in `docs/deployments.md` and
+`config/robinhood-testnet.json`.
+
 `script/devnet.sh` stands up the whole protocol on a local anvil with Robinhood Chain's id: the mainnet
 Uniswap v3 bytecode, seeded pools priced from the live Chainlink feeds, the deployment, the timelock
 hand-over and every basket in `config/baskets/`. It writes `.devnet.env` for the quoter and the app, which

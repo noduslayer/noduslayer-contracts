@@ -12,3 +12,5 @@ docs/
 
 # Dotenv file
 .env
+# Timestamped copies of broadcasts; run-latest.json is the record that is kept
+/broadcast/**/run-[0-9]*.json

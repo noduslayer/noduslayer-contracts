@@ -13,6 +13,16 @@ Blocking:
 2. Legal review of the index product in every jurisdiction served, and geo-blocking for US persons.
 3. A rehearsal of this entire runbook on testnet 46630, including the timelock delay.
 
+## Networks
+
+Every script takes `CONFIG=<name>` naming `config/<name>.json`, and `foundry.toml` has an RPC alias per
+network: `robinhood` (mainnet, 4663) and `robinhood_testnet` (46630). `robinhood-mainnet.json` describes
+mainnet's real tokens, feeds and Uniswap; `robinhood-testnet.json` is written by `script/testnet.sh` and
+describes the stand-in market it deployed; `robinhood-devnet.json` is written by `script/devnet.sh` for a
+local anvil. The quoter and the app carry the same split: one env file per network in the quoter's
+`deploy/networks/` and the app's `deploy/`, so moving the public services between networks is a matter of
+pointing them at the other file and rebuilding the app, never of editing code.
+
 Recommended: a bug bounty, and monitoring live before the first basket is created.
 
 ## Deploying
